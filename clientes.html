@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clientes — GestorPH</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --gold: #C9A84C; --gold-dark: #b8953e; --gold-light: #fdf3dc;
+      --gold-border: #e8d5a0; --bg: #f4f4f2; --white: #ffffff;
+      --border: #e0deda; --text: #1a1a1a; --muted: #888;
+      --danger: #c0392b; --success: #27ae60; --warn: #d68910;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+    .topbar { background: var(--white); border-bottom: 0.5px solid var(--border); padding: 0.85rem 1.5rem; display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
+    .topbar-badge { margin-left: auto; background: var(--gold-light); color: var(--gold-dark); font-size: 11px; padding: 3px 12px; border-radius: 20px; border: 0.5px solid var(--gold-border); }
+
+    .stats-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; padding: 1rem 1.25rem 0; }
+    .stat-card { background: var(--white); border: 0.5px solid var(--border); border-radius: 8px; padding: 0.8rem 1rem; }
+    .stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .stat-value { font-size: 20px; font-weight: 600; color: var(--text); }
+    .stat-sub { font-size: 10px; margin-top: 2px; color: var(--gold); }
+
+    .content { display: flex; gap: 1rem; padding: 1rem 1.25rem; flex: 1; }
+    .left-col { flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+    .right-col { flex: 1.4; display: flex; flex-direction: column; gap: 1rem; }
+
+    .card { background: var(--white); border: 0.5px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+    .card-title { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 8px; }
+    .card-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+    .card-btn { margin-left: auto; background: var(--gold); color: #fff; border: none; border-radius: 5px; font-size: 11px; padding: 4px 10px; cursor: pointer; font-family: inherit; }
+    .card-btn:hover { background: var(--gold-dark); }
+
+    label { font-size: 11px; color: #666; display: block; margin-bottom: 4px; }
+    input, select, textarea { width: 100%; background: #fafaf8; border: 0.5px solid #dddbd5; border-radius: 5px; color: var(--text); font-size: 12px; padding: 7px 9px; outline: none; font-family: inherit; }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold); background: #fffdf7; }
+    input::placeholder, textarea::placeholder { color: #bbb; }
+    textarea { resize: vertical; line-height: 1.5; }
+
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .form-full { margin-bottom: 8px; }
+
+    .btn-guardar { width: 100%; background: var(--gold); color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; padding: 10px; cursor: pointer; margin-top: 4px; transition: background 0.2s; font-family: inherit; }
+    .btn-guardar:hover { background: var(--gold-dark); }
+    .btn-limpiar { width: 100%; background: transparent; color: var(--muted); border: 0.5px solid #dddbd5; border-radius: 6px; font-size: 12px; padding: 8px; cursor: pointer; margin-top: 5px; font-family: inherit; }
+    .btn-limpiar:hover { border-color: var(--gold); color: var(--gold); }
+
+    .search-bar { display: flex; gap: 8px; margin-bottom: 0.85rem; }
+    .search-bar input { flex: 1; }
+    .search-bar select { width: 160px; flex-shrink: 0; }
+
+    .tabla-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th { font-size: 10px; color: var(--muted); font-weight: 600; text-align: left; padding: 6px 8px; border-bottom: 0.5px solid var(--border); text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+    tbody tr { border-bottom: 0.5px solid #f0eeea; transition: background 0.1s; }
+    tbody tr:hover { background: #fdf9f2; }
+    tbody td { padding: 7px 8px; color: #333; vertical-align: middle; }
+    tbody tr:last-child { border-bottom: none; }
+    .empty-tabla { text-align: center; padding: 2rem; color: #ccc; font-size: 12px; }
+
+    .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+    .badge.activo { background: #eafaf1; color: #27ae60; border: 0.5px solid #c3dfc3; }
+    .badge.inactivo { background: #fdf0ef; color: var(--danger); border: 0.5px solid #f5c6c5; }
+    .badge.prospecto { background: #fef6e7; color: var(--warn); border: 0.5px solid #f9d98a; }
+
+    .btn-accion { background: none; border: 0.5px solid var(--border); border-radius: 4px; font-size: 10px; color: var(--muted); padding: 3px 7px; cursor: pointer; margin-right: 3px; font-family: inherit; transition: all 0.15s; }
+    .btn-accion:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-accion.editar:hover { border-color: #3b82f6; color: #3b82f6; }
+    .btn-accion.eliminar:hover { border-color: var(--danger); color: var(--danger); }
+
+    .ficha { background: var(--gold-light); border: 0.5px solid var(--gold-border); border-radius: 8px; padding: 1rem; }
+    .ficha-nombre { font-size: 15px; font-weight: 600; color: var(--gold-dark); margin-bottom: 4px; }
+    .ficha-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 0.5px solid #f0e8c8; }
+    .ficha-row:last-child { border-bottom: none; }
+    .ficha-row span { color: #888; }
+    .ficha-row b { color: #333; }
+    .empty-ficha { text-align: center; padding: 1.5rem; color: #ccc; font-size: 12px; }
+
+    .status-bar { background: var(--gold); color: #fff; text-align: center; font-size: 11px; font-weight: 600; padding: 5px; letter-spacing: 0.5px; }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="3" stroke="#C9A84C" stroke-width="1.2"/><path d="M1 14c0-2.8 2.2-4 5-4s5 1.2 5 4" stroke="#C9A84C" stroke-width="1.2" fill="none"/><line x1="11" y1="6" x2="15" y2="6" stroke="#C9A84C" stroke-width="1.2"/><line x1="13" y1="4" x2="13" y2="8" stroke="#C9A84C" stroke-width="1.2"/></svg>
+  <span class="topbar-title">Gestión de Clientes / Copropiedades</span>
+  <span class="topbar-badge">Administración · GestorPH</span>
+</div>
+
+<div class="stats-row" id="stats-row">
+  <div class="stat-card"><div class="stat-label">Total clientes</div><div class="stat-value" id="st-total">0</div><div class="stat-sub">Registrados</div></div>
+  <div class="stat-card"><div class="stat-label">Activos</div><div class="stat-value" id="st-activos">0</div><div class="stat-sub">En gestión</div></div>
+  <div class="stat-card"><div class="stat-label">Prospectos</div><div class="stat-value" id="st-prosp">0</div><div class="stat-sub">Por vincular</div></div>
+  <div class="stat-card"><div class="stat-label">Unidades totales</div><div class="stat-value" id="st-unidades">0</div><div class="stat-sub">Gestionadas</div></div>
+</div>
+
+<div class="content">
+  <div class="left-col">
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span><span id="form-titulo">Nuevo cliente / copropiedad</span></div>
+
+      <div class="form-full">
+        <label>Nombre de la copropiedad</label>
+        <input type="text" id="f-nombre" placeholder="Ej: Conjunto Residencial Los Álamos"/>
+      </div>
+
+      <div class="form-row-2">
+        <div>
+          <label>NIT / Documento</label>
+          <input type="text" id="f-nit" placeholder="Ej: 900.123.456-1"/>
+        </div>
+        <div>
+          <label>Tipo de propiedad</label>
+          <select id="f-tipo">
+            <option value="">Seleccionar</option>
+            <option>Conjunto residencial</option>
+            <option>Edificio</option>
+            <option>Unidad de vivienda</option>
+            <option>Condominio</option>
+            <option>Mixto (residencial/comercial)</option>
+            <option>Parqueadero</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div>
+          <label>Ciudad</label>
+          <input type="text" id="f-ciudad" placeholder="Ej: Cali"/>
+        </div>
+        <div>
+          <label>Barrio / Sector</label>
+          <input type="text" id="f-barrio" placeholder="Ej: Ciudad Jardín"/>
+        </div>
+      </div>
+
+      <div class="form-full">
+        <label>Dirección</label>
+        <input type="text" id="f-direccion" placeholder="Ej: Cra 100 # 15 - 20"/>
+      </div>
+
+      <div class="form-row-2">
+        <div>
+          <label>Teléfono de contacto</label>
+          <input type="text" id="f-tel" placeholder="Ej: 602 123 4567"/>
+        </div>
+        <div>
+          <label>Correo del representante</label>
+          <input type="email" id="f-email" placeholder="Ej: admin@conjunto.com"/>
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div>
+          <label>Nombre del representante</label>
+          <input type="text" id="f-rep" placeholder="Nombre completo"/>
+        </div>
+        <div>
+          <label>Cargo del representante</label>
+          <select id="f-cargo">
+            <option value="">Seleccionar</option>
+            <option>Administrador delegado</option>
+            <option>Presidente del consejo</option>
+            <option>Revisor fiscal</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div>
+          <label>N° de unidades (aptos/casas)</label>
+          <input type="number" id="f-unidades" placeholder="Ej: 48" min="1"/>
+        </div>
+        <div>
+          <label>Cuota de administración ($)</label>
+          <input type="number" id="f-cuota" placeholder="Ej: 250000" min="0"/>
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div>
+          <label>Fecha de vinculación</label>
+          <input type="date" id="f-fecha"/>
+        </div>
+        <div>
+          <label>Estado</label>
+          <select id="f-estado">
+            <option value="activo">Activo</option>
+            <option value="prospecto">Prospecto</option>
+            <option value="inactivo">Inactivo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-full">
+        <label>Observaciones</label>
+        <textarea id="f-obs" rows="3" placeholder="Notas adicionales sobre la copropiedad, acuerdos, situaciones especiales..."></textarea>
+      </div>
+
+      <input type="hidden" id="f-id" value=""/>
+      <button class="btn-guardar" onclick="guardarCliente()">Guardar cliente</button>
+      <button class="btn-limpiar" onclick="limpiarFormulario()">Limpiar formulario</button>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <div class="card">
+      <div class="card-title">
+        <span class="card-dot"></span>Listado de clientes
+        <button class="card-btn" onclick="exportarLista()">Exportar ↗</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="buscar" placeholder="Buscar por nombre, NIT o ciudad..." oninput="filtrarClientes()"/>
+        <select id="filtro-estado" onchange="filtrarClientes()">
+          <option value="">Todos los estados</option>
+          <option value="activo">Activos</option>
+          <option value="prospecto">Prospectos</option>
+          <option value="inactivo">Inactivos</option>
+        </select>
+      </div>
+      <div class="tabla-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Copropiedad</th>
+              <th>NIT</th>
+              <th>Ciudad</th>
+              <th>Representante</th>
+              <th>Unidades</th>
+              <th>Cuota</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-body">
+            <tr><td colspan="8" class="empty-tabla">Aún no hay clientes registrados.<br>Usa el formulario para agregar el primero.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>Ficha del cliente seleccionado</div>
+      <div id="ficha-contenido">
+        <div class="empty-ficha">Haz clic en "Ver" en la tabla para ver el detalle de un cliente</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar">GestorPH · Módulo Clientes · Gestión de Copropiedades · Ley 675/2001</div>
+
+<script>
+  var clientes = JSON.parse(localStorage.getItem('gestorph_clientes') || '[]');
+  var editandoId = null;
+
+  function fmt(n) { return '$' + Math.round(n).toLocaleString('es-CO'); }
+
+  var estadoBadge = {
+    activo:    '<span class="badge activo">Activo</span>',
+    inactivo:  '<span class="badge inactivo">Inactivo</span>',
+    prospecto: '<span class="badge prospecto">Prospecto</span>'
+  };
+
+  function actualizarStats() {
+    document.getElementById('st-total').textContent   = clientes.length;
+    document.getElementById('st-activos').textContent = clientes.filter(function(c){ return c.estado === 'activo'; }).length;
+    document.getElementById('st-prosp').textContent   = clientes.filter(function(c){ return c.estado === 'prospecto'; }).length;
+    var unidades = clientes.reduce(function(s,c){ return s + (parseInt(c.unidades)||0); }, 0);
+    document.getElementById('st-unidades').textContent = unidades;
+  }
+
+  function guardarCliente() {
+    var nombre   = document.getElementById('f-nombre').value.trim();
+    var nit      = document.getElementById('f-nit').value.trim();
+    var tipo     = document.getElementById('f-tipo').value;
+    var ciudad   = document.getElementById('f-ciudad').value.trim();
+    var barrio   = document.getElementById('f-barrio').value.trim();
+    var direccion= document.getElementById('f-direccion').value.trim();
+    var tel      = document.getElementById('f-tel').value.trim();
+    var email    = document.getElementById('f-email').value.trim();
+    var rep      = document.getElementById('f-rep').value.trim();
+    var cargo    = document.getElementById('f-cargo').value;
+    var unidades = document.getElementById('f-unidades').value;
+    var cuota    = document.getElementById('f-cuota').value;
+    var fecha    = document.getElementById('f-fecha').value;
+    var estado   = document.getElementById('f-estado').value;
+    var obs      = document.getElementById('f-obs').value.trim();
+
+    if (!nombre) { alert('El nombre de la copropiedad es obligatorio.'); return; }
+    if (!ciudad)  { alert('La ciudad es obligatoria.'); return; }
+
+    var cliente = { id: editandoId || Date.now(), nombre, nit, tipo, ciudad, barrio, direccion, tel, email, rep, cargo, unidades, cuota, fecha, estado, obs };
+
+    if (editandoId) {
+      var idx = clientes.findIndex(function(c){ return c.id === editandoId; });
+      if (idx !== -1) clientes[idx] = cliente;
+      editandoId = null;
+      document.getElementById('form-titulo').textContent = 'Nuevo cliente / copropiedad';
+    } else {
+      clientes.push(cliente);
+    }
+
+    localStorage.setItem('gestorph_clientes', JSON.stringify(clientes));
+    renderTabla(clientes);
+    actualizarStats();
+    limpiarFormulario();
+  }
+
+  function renderTabla(lista) {
+    var tbody = document.getElementById('tabla-body');
+    if (lista.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-tabla">No se encontraron clientes.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = lista.map(function(c) {
+      return '<tr>' +
+        '<td><b>' + c.nombre + '</b>' + (c.tipo ? '<br><span style="font-size:10px;color:#aaa;">' + c.tipo + '</span>' : '') + '</td>' +
+        '<td>' + (c.nit || '—') + '</td>' +
+        '<td>' + c.ciudad + (c.barrio ? '<br><span style="font-size:10px;color:#aaa;">' + c.barrio + '</span>' : '') + '</td>' +
+        '<td>' + (c.rep || '—') + (c.cargo ? '<br><span style="font-size:10px;color:#aaa;">' + c.cargo + '</span>' : '') + '</td>' +
+        '<td style="text-align:center;">' + (c.unidades || '—') + '</td>' +
+        '<td>' + (c.cuota ? fmt(c.cuota) : '—') + '</td>' +
+        '<td>' + (estadoBadge[c.estado] || '—') + '</td>' +
+        '<td>' +
+          '<button class="btn-accion editar" onclick="editarCliente(' + c.id + ')">Editar</button>' +
+          '<button class="btn-accion" onclick="verFicha(' + c.id + ')">Ver</button>' +
+          '<button class="btn-accion eliminar" onclick="eliminarCliente(' + c.id + ')">Quitar</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  function verFicha(id) {
+    var c = clientes.find(function(x){ return x.id === id; });
+    if (!c) return;
+    var html = '<div class="ficha">' +
+      '<div class="ficha-nombre">' + c.nombre + '</div>' +
+      (c.tipo ? '<div style="font-size:11px;color:#b8953e;margin-bottom:8px;">' + c.tipo + '</div>' : '') +
+      '<div class="ficha-row"><span>NIT / Documento</span><b>' + (c.nit||'—') + '</b></div>' +
+      '<div class="ficha-row"><span>Ciudad</span><b>' + c.ciudad + (c.barrio ? ' · ' + c.barrio : '') + '</b></div>' +
+      '<div class="ficha-row"><span>Dirección</span><b>' + (c.direccion||'—') + '</b></div>' +
+      '<div class="ficha-row"><span>Teléfono</span><b>' + (c.tel||'—') + '</b></div>' +
+      '<div class="ficha-row"><span>Correo</span><b>' + (c.email||'—') + '</b></div>' +
+      '<div class="ficha-row"><span>Representante</span><b>' + (c.rep||'—') + (c.cargo ? ' (' + c.cargo + ')' : '') + '</b></div>' +
+      '<div class="ficha-row"><span>N° de unidades</span><b>' + (c.unidades||'—') + '</b></div>' +
+      '<div class="ficha-row"><span>Cuota de administración</span><b>' + (c.cuota ? fmt(c.cuota) : '—') + '</b></div>' +
+      '<div class="ficha-row"><span>Fecha de vinculación</span><b>' + (c.fecha||'—') + '</b></div>' +
+      '<div class="ficha-row"><span>Estado</span><b>' + (estadoBadge[c.estado]||'—') + '</b></div>' +
+      (c.obs ? '<div style="margin-top:8px;font-size:11px;color:#888;background:#fff;border-radius:5px;padding:8px;border:0.5px solid #e8d5a0;">📝 ' + c.obs + '</div>' : '') +
+      '</div>';
+    document.getElementById('ficha-contenido').innerHTML = html;
+  }
+
+  function editarCliente(id) {
+    var c = clientes.find(function(x){ return x.id === id; });
+    if (!c) return;
+    editandoId = id;
+    document.getElementById('f-nombre').value   = c.nombre;
+    document.getElementById('f-nit').value      = c.nit || '';
+    document.getElementById('f-tipo').value     = c.tipo || '';
+    document.getElementById('f-ciudad').value   = c.ciudad;
+    document.getElementById('f-barrio').value   = c.barrio || '';
+    document.getElementById('f-direccion').value= c.direccion || '';
+    document.getElementById('f-tel').value      = c.tel || '';
+    document.getElementById('f-email').value    = c.email || '';
+    document.getElementById('f-rep').value      = c.rep || '';
+    document.getElementById('f-cargo').value    = c.cargo || '';
+    document.getElementById('f-unidades').value = c.unidades || '';
+    document.getElementById('f-cuota').value    = c.cuota || '';
+    document.getElementById('f-fecha').value    = c.fecha || '';
+    document.getElementById('f-estado').value   = c.estado;
+    document.getElementById('f-obs').value      = c.obs || '';
+    document.getElementById('form-titulo').textContent = 'Editando: ' + c.nombre;
+    window.scrollTo(0, 0);
+  }
+
+  function eliminarCliente(id) {
+    var c = clientes.find(function(x){ return x.id === id; });
+    if (!c) return;
+    if (!confirm('¿Segura que deseas eliminar "' + c.nombre + '"? Esta acción no se puede deshacer.')) return;
+    clientes = clientes.filter(function(x){ return x.id !== id; });
+    localStorage.setItem('gestorph_clientes', JSON.stringify(clientes));
+    renderTabla(clientes);
+    actualizarStats();
+    document.getElementById('ficha-contenido').innerHTML = '<div class="empty-ficha">Haz clic en "Ver" para ver el detalle de un cliente</div>';
+  }
+
+  function filtrarClientes() {
+    var texto  = document.getElementById('buscar').value.toLowerCase();
+    var estado = document.getElementById('filtro-estado').value;
+    var filtrados = clientes.filter(function(c) {
+      var coincideTexto  = !texto || c.nombre.toLowerCase().includes(texto) || (c.nit||'').toLowerCase().includes(texto) || c.ciudad.toLowerCase().includes(texto) || (c.rep||'').toLowerCase().includes(texto);
+      var coincideEstado = !estado || c.estado === estado;
+      return coincideTexto && coincideEstado;
+    });
+    renderTabla(filtrados);
+  }
+
+  function limpiarFormulario() {
+    ['f-nombre','f-nit','f-ciudad','f-barrio','f-direccion','f-tel','f-email','f-rep','f-unidades','f-cuota','f-fecha','f-obs'].forEach(function(id){ document.getElementById(id).value = ''; });
+    document.getElementById('f-tipo').value   = '';
+    document.getElementById('f-cargo').value  = '';
+    document.getElementById('f-estado').value = 'activo';
+    document.getElementById('form-titulo').textContent = 'Nuevo cliente / copropiedad';
+    editandoId = null;
+  }
+
+  function exportarLista() {
+    if (clientes.length === 0) { alert('No hay clientes para exportar.'); return; }
+    var txt = 'LISTADO DE CLIENTES — GestorPH\n';
+    txt += '================================\n\n';
+    clientes.forEach(function(c, i) {
+      txt += (i+1) + '. ' + c.nombre + '\n';
+      txt += '   NIT: ' + (c.nit||'—') + ' | Ciudad: ' + c.ciudad + '\n';
+      txt += '   Representante: ' + (c.rep||'—') + '\n';
+      txt += '   Unidades: ' + (c.unidades||'—') + ' | Cuota: ' + (c.cuota ? fmt(c.cuota) : '—') + '\n';
+      txt += '   Estado: ' + c.estado + '\n\n';
+    });
+    var blob = new Blob([txt], { type: 'text/plain' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'clientes_gestorph.txt';
+    a.click();
+  }
+
+  renderTabla(clientes);
+  actualizarStats();
+</script>
+</body>
+</html>
