@@ -397,9 +397,15 @@
       alert('Por favor completa todos los campos antes de ingresar.');
       return;
     }
-    var nombre = email.split('@')[0];
-    nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1);
-    iniciarApp(nombre, rol);
+    if (email !== 'francia@gestorph.com') {
+      alert('Correo incorrecto.\nUsa: francia@gestorph.com');
+      return;
+    }
+    if (pass !== '1234567890') {
+      alert('Contraseña incorrecta. Intenta de nuevo.');
+      return;
+    }
+    iniciarApp('Francia Ramírez', rol);
   }
 
   function entrarDemo() {
