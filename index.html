@@ -553,14 +553,30 @@
     var m = modulos[nombre];
     if (!m) return;
     moduloActual = nombre;
-    var userParam = usuarioActual ? encodeURIComponent(usuarioActual.email) : 'demo';
+    var userParam  = usuarioActual ? encodeURIComponent(usuarioActual.email) : 'demo';
     var esAdminParam = (usuarioActual && usuarioActual.esAdmin) ? '1' : '0';
     document.getElementById('module-frame').src = m.archivo + '?u=' + userParam + '&admin=' + esAdminParam;
     document.getElementById('topbar-title').textContent = m.titulo;
     document.getElementById('topbar-sub').textContent   = m.sub;
     document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
     if (btn) btn.classList.add('active');
+    else {
+      var navItems = document.querySelectorAll('.nav-item');
+      navItems.forEach(function(el) {
+        if (el.getAttribute('onclick') && el.getAttribute('onclick').includes("'" + nombre + "'")) el.classList.add('active');
+      });
+    }
   }
+
+  window.addEventListener('message', function(e) {
+    if (!e.data) return;
+    if (e.data.accion === 'cargarModulo') {
+      cargarModulo(e.data.modulo, null);
+    }
+    if (e.data.tipo === 'navegar') {
+      cargarModulo(e.data.modulo, null);
+    }
+  });
 </script>
 <!-- ══ MODAL USUARIOS ══ -->
 <div id="modal-usuarios" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;align-items:center;justify-content:center;">
