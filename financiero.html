@@ -1,0 +1,283 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .page { display: flex; flex-direction: column; min-height: 680px; background: #f4f4f2; font-family: var(--font-sans); }
+  .topbar { background: #fff; border-bottom: 0.5px solid #e0deda; padding: 0.85rem 1.5rem; display: flex; align-items: center; gap: 12px; }
+  .back-btn { font-size: 12px; color: #C9A84C; cursor: pointer; background: none; border: none; padding: 0; }
+  .topbar-sep { color: #ddd; }
+  .topbar-title { font-size: 15px; font-weight: 500; color: #1a1a1a; }
+  .topbar-badge { margin-left: auto; background: #fdf3dc; color: #b8953e; font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 0.5px solid #e8d5a0; }
+
+  .tabs { display: flex; gap: 0; background: #fff; border-bottom: 0.5px solid #e0deda; padding: 0 1.25rem; }
+  .tab { font-size: 12px; color: #aaa; padding: 10px 16px; cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; background: none; border-top: none; border-left: none; border-right: none; }
+  .tab.active { color: #C9A84C; border-bottom-color: #C9A84C; font-weight: 500; }
+  .tab:hover { color: #C9A84C; }
+
+  .panel { display: none; padding: 1.25rem; flex: 1; }
+  .panel.active { display: flex; gap: 1rem; }
+  .panel-full { display: none; padding: 1.25rem; flex-direction: column; gap: 1rem; }
+  .panel-full.active { display: flex; }
+
+  .col { flex: 1; display: flex; flex-direction: column; gap: 1rem; }
+  .card { background: #fff; border: 0.5px solid #e0deda; border-radius: 10px; padding: 1rem 1.25rem; }
+  .card-title { font-size: 11px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 8px; }
+  .card-title-dot { width: 6px; height: 6px; border-radius: 50%; background: #C9A84C; flex-shrink: 0; }
+  .card-title-btn { margin-left: auto; background: #C9A84C; color: #fff; border: none; border-radius: 5px; font-size: 11px; padding: 4px 10px; cursor: pointer; }
+  .card-title-btn:hover { background: #b8953e; }
+
+  label { font-size: 11px; color: #666; display: block; margin-bottom: 4px; }
+  input[type=number], input[type=text], select { width: 100%; background: #fafaf8; border: 0.5px solid #dddbd5; border-radius: 5px; color: #1a1a1a; font-size: 12px; padding: 7px 9px; outline: none; }
+  input:focus, select:focus { border-color: #C9A84C; }
+  input::placeholder { color: #bbb; }
+
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .form-full { margin-bottom: 8px; }
+
+  .btn-calcular { width: 100%; background: #C9A84C; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; padding: 9px; cursor: pointer; margin-top: 4px; transition: background 0.2s; }
+  .btn-calcular:hover { background: #b8953e; }
+  .btn-limpiar { width: 100%; background: transparent; color: #aaa; border: 0.5px solid #dddbd5; border-radius: 6px; font-size: 12px; padding: 8px; cursor: pointer; margin-top: 5px; }
+  .btn-limpiar:hover { border-color: #C9A84C; color: #C9A84C; }
+
+  .ef-section { margin-bottom: 0.5rem; }
+  .ef-section-title { font-size: 11px; font-weight: 500; color: #C9A84C; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 0 4px; border-bottom: 1px solid #e8d5a0; margin-bottom: 4px; }
+  .ef-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 8px; }
+  .ef-row:hover { background: #fdf9f2; border-radius: 4px; }
+  .ef-row span { color: #555; }
+  .ef-row b { color: #1a1a1a; font-weight: 500; }
+  .ef-total { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; padding: 7px 8px; background: #fdf3dc; border-radius: 6px; margin-top: 6px; }
+  .ef-total span { color: #b8953e; }
+
+  .indicador-card { background: #fafaf8; border: 0.5px solid #e0deda; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+  .ind-label { font-size: 12px; color: #555; }
+  .ind-sub { font-size: 10px; color: #aaa; margin-top: 2px; }
+  .ind-value { font-size: 16px; font-weight: 500; }
+  .ind-value.green { color: #27ae60; }
+  .ind-value.red { color: #c0392b; }
+  .ind-value.gold { color: #C9A84C; }
+  .ind-badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-top: 4px; display: inline-block; }
+  .ind-badge.ok { background: #eafaf1; color: #27ae60; border: 0.5px solid #c3dfc3; }
+  .ind-badge.alert { background: #fef6e7; color: #d68910; border: 0.5px solid #f9d98a; }
+  .ind-badge.danger { background: #fdf0ef; color: #c0392b; border: 0.5px solid #f5c6c5; }
+
+  .resultado-box { background: #fdf3dc; border: 0.5px solid #e8d5a0; border-radius: 8px; padding: 0.85rem 1.1rem; margin-top: 0.5rem; }
+  .resultado-label { font-size: 11px; color: #b8953e; margin-bottom: 3px; }
+  .resultado-value { font-size: 20px; font-weight: 500; }
+  .resultado-value.positivo { color: #27ae60; }
+  .resultado-value.negativo { color: #c0392b; }
+  .resultado-value.gold { color: #b8953e; }
+
+  .alerta-financiera { border-radius: 6px; padding: 8px 12px; font-size: 11px; margin-top: 6px; line-height: 1.5; }
+  .alerta-financiera.ok { background: #eafaf1; color: #27ae60; border: 0.5px solid #c3dfc3; }
+  .alerta-financiera.warn { background: #fef6e7; color: #d68910; border: 0.5px solid #f9d98a; }
+  .alerta-financiera.danger { background: #fdf0ef; color: #c0392b; border: 0.5px solid #f5c6c5; }
+
+  .empty-state { text-align: center; padding: 2rem 1rem; color: #ccc; font-size: 12px; }
+  .status-bar { background: #C9A84C; color: #fff; text-align: center; font-size: 11px; font-weight: 500; padding: 5px; letter-spacing: 0.5px; }
+</style>
+
+<div class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="sendPrompt('Volver al dashboard principal de GestorPH')">← Volver</button>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-title">Estados Financieros</span>
+    <span class="topbar-badge">Balance · Resultados · Indicadores</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('balance')">Balance General</button>
+    <button class="tab" onclick="showTab('resultados')">Estado de Resultados</button>
+    <button class="tab" onclick="showTab('indicadores')">Indicadores Financieros</button>
+  </div>
+
+  <!-- TAB 1: BALANCE GENERAL -->
+  <div class="panel active" id="tab-balance">
+    <div class="col">
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Activos</div>
+        <div class="ef-section">
+          <div class="ef-section-title">Activo corriente</div>
+          <div class="form-row-2"><div><label>Caja y bancos ($)</label><input type="number" id="b-caja" placeholder="0" oninput="calcBalance()" /></div><div><label>Cartera por cobrar ($)</label><input type="number" id="b-cartera" placeholder="0" oninput="calcBalance()" /></div></div>
+          <div class="form-row-2"><div><label>Inversiones temporales ($)</label><input type="number" id="b-inv-temp" placeholder="0" oninput="calcBalance()" /></div><div><label>Otros activos corrientes ($)</label><input type="number" id="b-otros-ac" placeholder="0" oninput="calcBalance()" /></div></div>
+        </div>
+        <div class="ef-section">
+          <div class="ef-section-title">Activo no corriente</div>
+          <div class="form-row-2"><div><label>Propiedad, planta y equipo ($)</label><input type="number" id="b-ppe" placeholder="0" oninput="calcBalance()" /></div><div><label>Depreciación acumulada ($)</label><input type="number" id="b-dep" placeholder="0" oninput="calcBalance()" /></div></div>
+          <div class="form-full"><label>Otros activos no corrientes ($)</label><input type="number" id="b-otros-anc" placeholder="0" oninput="calcBalance()" /></div>
+        </div>
+        <div class="ef-total"><span>Total Activos</span><span id="b-total-activos">$0</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Pasivos y Patrimonio</div>
+        <div class="ef-section">
+          <div class="ef-section-title">Pasivo corriente</div>
+          <div class="form-row-2"><div><label>Cuentas por pagar ($)</label><input type="number" id="b-cxp" placeholder="0" oninput="calcBalance()" /></div><div><label>Obligaciones laborales ($)</label><input type="number" id="b-lab" placeholder="0" oninput="calcBalance()" /></div></div>
+          <div class="form-row-2"><div><label>Impuestos por pagar ($)</label><input type="number" id="b-imp" placeholder="0" oninput="calcBalance()" /></div><div><label>Otros pasivos corrientes ($)</label><input type="number" id="b-otros-pc" placeholder="0" oninput="calcBalance()" /></div></div>
+        </div>
+        <div class="ef-section">
+          <div class="ef-section-title">Pasivo no corriente</div>
+          <div class="form-full"><label>Obligaciones financieras LP ($)</label><input type="number" id="b-oblig-lp" placeholder="0" oninput="calcBalance()" /></div>
+        </div>
+        <div class="ef-section">
+          <div class="ef-section-title">Patrimonio</div>
+          <div class="form-row-2"><div><label>Fondo de imprevistos ($)</label><input type="number" id="b-fondo" placeholder="0" oninput="calcBalance()" /></div><div><label>Resultados acumulados ($)</label><input type="number" id="b-result-ac" placeholder="0" oninput="calcBalance()" /></div></div>
+          <div class="form-full"><label>Resultado del ejercicio ($)</label><input type="number" id="b-result-ej" placeholder="0" oninput="calcBalance()" /></div>
+        </div>
+        <div class="ef-total"><span>Total Pasivo + Patrimonio</span><span id="b-total-pp">$0</span></div>
+      </div>
+
+      <div class="card" id="card-balance-resultado">
+        <div class="card-title"><span class="card-title-dot"></span>Verificación del balance</div>
+        <div class="empty-state">Ingresa los valores para ver la verificación</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: ESTADO DE RESULTADOS -->
+  <div class="panel" id="tab-resultados">
+    <div class="col">
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Ingresos</div>
+        <div class="ef-section">
+          <div class="ef-section-title">Ingresos operacionales</div>
+          <div class="form-row-2"><div><label>Cuotas de administración ($)</label><input type="number" id="r-cuotas" placeholder="0" oninput="calcResultados()" /></div><div><label>Cuotas extraordinarias ($)</label><input type="number" id="r-extraord" placeholder="0" oninput="calcResultados()" /></div></div>
+          <div class="form-row-2"><div><label>Multas e intereses de mora ($)</label><input type="number" id="r-multas" placeholder="0" oninput="calcResultados()" /></div><div><label>Arrendamiento zonas comunes ($)</label><input type="number" id="r-arrend" placeholder="0" oninput="calcResultados()" /></div></div>
+          <div class="form-full"><label>Otros ingresos ($)</label><input type="number" id="r-otros-ing" placeholder="0" oninput="calcResultados()" /></div>
+        </div>
+        <div class="ef-total"><span>Total Ingresos</span><span id="r-total-ing">$0</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Gastos y Resultado</div>
+        <div class="ef-section">
+          <div class="ef-section-title">Gastos operacionales</div>
+          <div class="form-row-2"><div><label>Administración y personal ($)</label><input type="number" id="r-admin" placeholder="0" oninput="calcResultados()" /></div><div><label>Servicios públicos ($)</label><input type="number" id="r-serv" placeholder="0" oninput="calcResultados()" /></div></div>
+          <div class="form-row-2"><div><label>Mantenimiento y reparaciones ($)</label><input type="number" id="r-mant" placeholder="0" oninput="calcResultados()" /></div><div><label>Vigilancia y seguridad ($)</label><input type="number" id="r-vigil" placeholder="0" oninput="calcResultados()" /></div></div>
+          <div class="form-row-2"><div><label>Honorarios contador/revisor ($)</label><input type="number" id="r-honor" placeholder="0" oninput="calcResultados()" /></div><div><label>Seguros ($)</label><input type="number" id="r-seguros" placeholder="0" oninput="calcResultados()" /></div></div>
+          <div class="form-row-2"><div><label>Gastos bancarios ($)</label><input type="number" id="r-banc" placeholder="0" oninput="calcResultados()" /></div><div><label>Otros gastos ($)</label><input type="number" id="r-otros-gto" placeholder="0" oninput="calcResultados()" /></div></div>
+        </div>
+        <div class="ef-total"><span>Total Gastos</span><span id="r-total-gto">$0</span></div>
+      </div>
+
+      <div class="card" id="card-resultado-ej">
+        <div class="card-title"><span class="card-title-dot"></span>Resultado del ejercicio</div>
+        <div class="empty-state">Ingresa ingresos y gastos para ver el resultado</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: INDICADORES -->
+  <div class="panel-full" id="tab-indicadores">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Datos para indicadores</div>
+        <div class="form-row-2"><div><label>Activo corriente ($)</label><input type="number" id="i-ac" placeholder="0" oninput="calcIndicadores()" /></div><div><label>Pasivo corriente ($)</label><input type="number" id="i-pc" placeholder="0" oninput="calcIndicadores()" /></div></div>
+        <div class="form-row-2"><div><label>Total activos ($)</label><input type="number" id="i-ta" placeholder="0" oninput="calcIndicadores()" /></div><div><label>Total pasivos ($)</label><input type="number" id="i-tp" placeholder="0" oninput="calcIndicadores()" /></div></div>
+        <div class="form-row-2"><div><label>Ingresos totales ($)</label><input type="number" id="i-ing" placeholder="0" oninput="calcIndicadores()" /></div><div><label>Gastos totales ($)</label><input type="number" id="i-gto" placeholder="0" oninput="calcIndicadores()" /></div></div>
+        <div class="form-row-2"><div><label>Cartera por cobrar ($)</label><input type="number" id="i-cart" placeholder="0" oninput="calcIndicadores()" /></div><div><label>Fondo de imprevistos ($)</label><input type="number" id="i-fondo" placeholder="0" oninput="calcIndicadores()" /></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Indicadores calculados</div>
+        <div id="indicadores-resultado">
+          <div class="empty-state">Ingresa los datos para calcular los indicadores financieros</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">GestorPH · Estados Financieros · NIIF para Pymes · Propiedad Horizontal Colombia</div>
+</div>
+
+<script>
+function fmt(n) { return '$' + Math.round(n).toLocaleString('es-CO'); }
+function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function showTab(tab) {
+  document.querySelectorAll('.tab').forEach(function(t, i) {
+    var tabs = ['balance','resultados','indicadores'];
+    t.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.panel, .panel-full').forEach(function(p) { p.classList.remove('active'); });
+  var el = document.getElementById('tab-' + tab);
+  if (el) el.classList.add('active');
+}
+
+function calcBalance() {
+  var ac = v('b-caja') + v('b-cartera') + v('b-inv-temp') + v('b-otros-ac');
+  var anc = v('b-ppe') - v('b-dep') + v('b-otros-anc');
+  var ta = ac + anc;
+  var pc = v('b-cxp') + v('b-lab') + v('b-imp') + v('b-otros-pc');
+  var pnc = v('b-oblig-lp');
+  var pat = v('b-fondo') + v('b-result-ac') + v('b-result-ej');
+  var tpp = pc + pnc + pat;
+  document.getElementById('b-total-activos').textContent = fmt(ta);
+  document.getElementById('b-total-pp').textContent = fmt(tpp);
+  var diff = ta - tpp;
+  var card = document.getElementById('card-balance-resultado');
+  var html = '';
+  if (ta === 0 && tpp === 0) { card.innerHTML = '<div class="card-title"><span class="card-title-dot"></span>Verificación del balance</div><div class="empty-state">Ingresa los valores para ver la verificación</div>'; return; }
+  html += '<div class="card-title"><span class="card-title-dot"></span>Verificación del balance</div>';
+  html += '<div class="ef-row"><span>Total Activos</span><b>' + fmt(ta) + '</b></div>';
+  html += '<div class="ef-row"><span>Total Pasivo + Patrimonio</span><b>' + fmt(tpp) + '</b></div>';
+  if (Math.abs(diff) < 1) {
+    html += '<div class="alerta-financiera ok">Balance cuadrado correctamente. Activos = Pasivo + Patrimonio.</div>';
+  } else {
+    html += '<div class="resultado-box"><div class="resultado-label">Diferencia detectada</div><div class="resultado-value ' + (diff > 0 ? 'gold' : 'negativo') + '">' + fmt(Math.abs(diff)) + '</div></div>';
+    html += '<div class="alerta-financiera danger">El balance no cuadra. Revisa los valores ingresados. Diferencia: ' + fmt(Math.abs(diff)) + '</div>';
+  }
+  card.innerHTML = html;
+}
+
+function calcResultados() {
+  var ing = v('r-cuotas') + v('r-extraord') + v('r-multas') + v('r-arrend') + v('r-otros-ing');
+  var gto = v('r-admin') + v('r-serv') + v('r-mant') + v('r-vigil') + v('r-honor') + v('r-seguros') + v('r-banc') + v('r-otros-gto');
+  var res = ing - gto;
+  document.getElementById('r-total-ing').textContent = fmt(ing);
+  document.getElementById('r-total-gto').textContent = fmt(gto);
+  var card = document.getElementById('card-resultado-ej');
+  if (ing === 0 && gto === 0) { card.innerHTML = '<div class="card-title"><span class="card-title-dot"></span>Resultado del ejercicio</div><div class="empty-state">Ingresa ingresos y gastos para ver el resultado</div>'; return; }
+  var esPos = res >= 0;
+  var html = '<div class="card-title"><span class="card-title-dot"></span>Resultado del ejercicio</div>';
+  html += '<div class="ef-row"><span>Total Ingresos</span><b style="color:#27ae60;">' + fmt(ing) + '</b></div>';
+  html += '<div class="ef-row"><span>Total Gastos</span><b style="color:#c0392b;">' + fmt(gto) + '</b></div>';
+  html += '<div class="resultado-box"><div class="resultado-label">' + (esPos ? 'Superávit del período' : 'Déficit del período') + '</div>';
+  html += '<div class="resultado-value ' + (esPos ? 'positivo' : 'negativo') + '">' + fmt(Math.abs(res)) + '</div></div>';
+  var pct = ing > 0 ? ((Math.abs(res) / ing) * 100).toFixed(1) : 0;
+  if (esPos) {
+    html += '<div class="alerta-financiera ok">La copropiedad presenta superávit. Los ingresos cubren los gastos con un margen del ' + pct + '%.</div>';
+  } else {
+    html += '<div class="alerta-financiera danger">La copropiedad presenta déficit. Los gastos superan los ingresos en ' + pct + '%. Se recomienda revisar el presupuesto.</div>';
+  }
+  card.innerHTML = html;
+}
+
+function calcIndicadores() {
+  var ac = v('i-ac'), pc = v('i-pc'), ta = v('i-ta'), tp = v('i-tp'), ing = v('i-ing'), gto = v('i-gto'), cart = v('i-cart'), fondo = v('i-fondo');
+  if (ac === 0 && pc === 0 && ta === 0) { document.getElementById('indicadores-resultado').innerHTML = '<div class="empty-state">Ingresa los datos para calcular los indicadores financieros</div>'; return; }
+  var liquidez = pc > 0 ? (ac / pc).toFixed(2) : 'N/A';
+  var endeud = ta > 0 ? ((tp / ta) * 100).toFixed(1) : 'N/A';
+  var margen = ing > 0 ? (((ing - gto) / ing) * 100).toFixed(1) : 'N/A';
+  var recup = ing > 0 ? ((cart / ing) * 100).toFixed(1) : 'N/A';
+  var fondoPct = ing > 0 ? ((fondo / ing) * 100).toFixed(1) : 'N/A';
+
+  function badge(val, bueno, medio) {
+    if (val === 'N/A') return '<span class="ind-badge alert">Sin datos</span>';
+    var n = parseFloat(val);
+    if (n >= bueno) return '<span class="ind-badge ok">Saludable</span>';
+    if (n >= medio) return '<span class="ind-badge alert">Atención</span>';
+    return '<span class="ind-badge danger">Crítico</span>';
+  }
+
+  var html = '';
+  html += '<div class="indicador-card"><div><div class="ind-label">Razón de liquidez</div><div class="ind-sub">Activo cte / Pasivo cte · Ideal ≥ 1.5</div>' + badge(liquidez, 1.5, 1) + '</div><div class="ind-value ' + (parseFloat(liquidez) >= 1.5 ? 'green' : parseFloat(liquidez) >= 1 ? 'gold' : 'red') + '">' + liquidez + '</div></div>';
+  html += '<div class="indicador-card"><div><div class="ind-label">Nivel de endeudamiento</div><div class="ind-sub">Pasivos / Activos · Ideal ≤ 40%</div>' + badge(100 - parseFloat(endeud), 60, 40) + '</div><div class="ind-value ' + (parseFloat(endeud) <= 40 ? 'green' : parseFloat(endeud) <= 60 ? 'gold' : 'red') + '">' + endeud + '%</div></div>';
+  html += '<div class="indicador-card"><div><div class="ind-label">Margen operacional</div><div class="ind-sub">(Ing - Gto) / Ing · Ideal > 0%</div>' + badge(margen, 5, 0) + '</div><div class="ind-value ' + (parseFloat(margen) > 5 ? 'green' : parseFloat(margen) >= 0 ? 'gold' : 'red') + '">' + margen + '%</div></div>';
+  html += '<div class="indicador-card"><div><div class="ind-label">Cartera sobre ingresos</div><div class="ind-sub">Cartera / Ingresos · Ideal ≤ 20%</div>' + badge(100 - parseFloat(recup), 80, 60) + '</div><div class="ind-value ' + (parseFloat(recup) <= 20 ? 'green' : parseFloat(recup) <= 35 ? 'gold' : 'red') + '">' + recup + '%</div></div>';
+  html += '<div class="indicador-card"><div><div class="ind-label">Fondo de imprevistos</div><div class="ind-sub">Fondo / Ingresos · Ley 675/2001 mín 1%</div>' + badge(parseFloat(fondoPct), 5, 1) + '</div><div class="ind-value ' + (parseFloat(fondoPct) >= 5 ? 'green' : parseFloat(fondoPct) >= 1 ? 'gold' : 'red') + '">' + fondoPct + '%</div></div>';
+  document.getElementById('indicadores-resultado').innerHTML = html;
+}
+</script>

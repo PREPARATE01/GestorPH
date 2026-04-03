@@ -1,0 +1,259 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .page { display: flex; flex-direction: column; min-height: 640px; background: #f4f4f2; font-family: var(--font-sans); }
+  .topbar { background: #fff; border-bottom: 0.5px solid #e0deda; padding: 0.85rem 1.5rem; display: flex; align-items: center; gap: 12px; }
+  .back-btn { font-size: 12px; color: #C9A84C; cursor: pointer; background: none; border: none; padding: 0; }
+  .topbar-sep { color: #ddd; font-size: 14px; }
+  .topbar-title { font-size: 15px; font-weight: 500; color: #1a1a1a; }
+  .topbar-badge { margin-left: auto; background: #fdf3dc; color: #b8953e; font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 0.5px solid #e8d5a0; }
+  .content { display: flex; gap: 1rem; padding: 1.25rem; flex: 1; }
+  .left-col { flex: 1.1; display: flex; flex-direction: column; gap: 1rem; }
+  .right-col { flex: 0.9; display: flex; flex-direction: column; gap: 1rem; }
+  .card { background: #fff; border: 0.5px solid #e0deda; border-radius: 10px; padding: 1.1rem 1.25rem; }
+  .card-title { font-size: 11px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+  .card-title-dot { width: 6px; height: 6px; border-radius: 50%; background: #C9A84C; flex-shrink: 0; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .form-full { margin-bottom: 10px; }
+  label { font-size: 12px; color: #666; display: block; margin-bottom: 5px; }
+  .hint { font-size: 10px; color: #C9A84C; margin-top: 3px; }
+  input[type=number], select {
+    width: 100%; background: #fafaf8; border: 0.5px solid #dddbd5; border-radius: 6px;
+    color: #1a1a1a; font-size: 13px; padding: 8px 11px; outline: none;
+  }
+  input:focus, select:focus { border-color: #C9A84C; background: #fffdf7; }
+  .alerta-cuantia { font-size: 11px; color: #c0392b; background: #fdf0ef; border: 0.5px solid #f5c6c5; border-radius: 5px; padding: 6px 10px; margin-top: 6px; display: none; }
+  .tarifas-auto { background: #f7f6f2; border-radius: 6px; padding: 8px 10px; margin-top: 4px; font-size: 11px; color: #888; display: none; }
+  .tarifas-auto b { color: #b8953e; }
+  .btn-calcular { width: 100%; background: #C9A84C; color: #fff; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; padding: 11px; cursor: pointer; margin-top: 0.5rem; transition: background 0.2s, transform 0.1s; }
+  .btn-calcular:hover { background: #b8953e; }
+  .btn-calcular:active { transform: scale(0.98); }
+  .btn-limpiar { width: 100%; background: transparent; color: #aaa; border: 0.5px solid #dddbd5; border-radius: 6px; font-size: 13px; padding: 9px; cursor: pointer; margin-top: 6px; transition: border-color 0.2s, color 0.2s; }
+  .btn-limpiar:hover { border-color: #C9A84C; color: #C9A84C; }
+  .result-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid #f0eeea; font-size: 13px; }
+  .result-row:last-of-type { border-bottom: none; }
+  .result-label { color: #666; font-size: 12px; }
+  .result-value { font-weight: 500; color: #1a1a1a; }
+  .result-value.red { color: #c0392b; }
+  .result-value.green { color: #27ae60; }
+  .total-box { background: #fdf3dc; border: 0.5px solid #e8d5a0; border-radius: 8px; padding: 0.85rem 1.1rem; margin-top: 0.75rem; }
+  .total-label { font-size: 11px; color: #b8953e; margin-bottom: 3px; }
+  .total-value { font-size: 21px; font-weight: 500; color: #b8953e; }
+  .neto-box { background: #f0f8f0; border: 0.5px solid #c3dfc3; border-radius: 8px; padding: 0.85rem 1.1rem; margin-top: 8px; }
+  .neto-label { font-size: 11px; color: #27ae60; margin-bottom: 3px; }
+  .neto-value { font-size: 21px; font-weight: 500; color: #27ae60; }
+  .empty-state { text-align: center; padding: 2rem 1rem; color: #ccc; font-size: 13px; }
+  .ref-row { display: flex; justify-content: space-between; font-size: 11px; color: #999; padding: 5px 0; border-bottom: 0.5px solid #f0eeea; }
+  .ref-row:last-child { border-bottom: none; }
+  .ref-row b { color: #555; font-weight: 500; }
+  .ref-row span.art { color: #C9A84C; font-size: 10px; margin-left: 4px; }
+  .info-box { background: #f4f4f2; border-radius: 6px; padding: 0.7rem; font-size: 11px; color: #888; line-height: 1.6; border-left: 2px solid #C9A84C; margin-top: 0.75rem; }
+  .uvt-banner { background: #fdf3dc; border: 0.5px solid #e8d5a0; border-radius: 6px; padding: 6px 12px; font-size: 11px; color: #b8953e; margin-bottom: 0.75rem; display: flex; justify-content: space-between; }
+  .status-bar { background: #C9A84C; color: #fff; text-align: center; font-size: 11px; font-weight: 500; padding: 5px; letter-spacing: 0.5px; }
+  .no-aplica-msg { background: #fdf0ef; border: 0.5px solid #f5c6c5; border-radius: 8px; padding: 1rem; color: #c0392b; font-size: 13px; text-align: center; }
+</style>
+
+<div class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="sendPrompt('Volver al dashboard principal de GestorPH')">← Volver</button>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-title">Cálculo de Retenciones</span>
+    <span class="topbar-badge">Tarifas vigentes 2026 · UVT $52.374</span>
+  </div>
+
+  <div class="content">
+    <div class="left-col">
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Datos del pago</div>
+
+        <div class="uvt-banner">
+          <span>UVT 2026: <b>$52.374</b> · Resolución DIAN 000238/2025</span>
+          <span>Decreto 0572 de 2025 vigente</span>
+        </div>
+
+        <div class="form-full">
+          <label>Concepto del pago</label>
+          <select id="concepto" onchange="seleccionarConcepto()">
+            <option value="">— Seleccionar concepto —</option>
+            <optgroup label="Honorarios (sin cuantía mínima)">
+              <option value="hon_jur" data-rf="11" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="0" data-cuantia_txt="Sin mínimo">Honorarios — Persona jurídica (11%)</option>
+              <option value="hon_nat_dec" data-rf="10" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="0" data-cuantia_txt="Sin mínimo">Honorarios — Persona natural declarante (10%)</option>
+              <option value="hon_nat_nodec" data-rf="11" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="0" data-cuantia_txt="Sin mínimo">Honorarios — Persona natural no declarante (11%)</option>
+            </optgroup>
+            <optgroup label="Servicios — Cuantía mín. 4 UVT = $209.496">
+              <option value="serv_dec" data-rf="4" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Servicios generales — Declarante (4%)</option>
+              <option value="serv_nodec" data-rf="6" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Servicios generales — No declarante (6%)</option>
+              <option value="vigilancia" data-rf="2" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Vigilancia y seguridad (2%)</option>
+              <option value="aseo" data-rf="2" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Aseo y limpieza (2%)</option>
+              <option value="mantenimiento" data-rf="2" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Mantenimiento y reparaciones (2%)</option>
+              <option value="transporte_pas" data-rf="3.5" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="524000" data-cuantia_txt="Mín. 10 UVT = $524.000">Transporte de pasajeros (3.5%)</option>
+              <option value="transporte_carga" data-rf="1" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Transporte de carga terrestre (1%)</option>
+            </optgroup>
+            <optgroup label="Compras — Cuantía mín. 27 UVT = $1.414.098">
+              <option value="compras_dec" data-rf="2.5" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="1414098" data-cuantia_txt="Mín. 27 UVT = $1.414.098">Compras generales — Declarante (2.5%)</option>
+              <option value="compras_nodec" data-rf="3.5" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="1414098" data-cuantia_txt="Mín. 27 UVT = $1.414.098">Compras generales — No declarante (3.5%)</option>
+            </optgroup>
+            <optgroup label="Arrendamientos">
+              <option value="arrend_mueble" data-rf="4" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="0" data-cuantia_txt="Sin mínimo">Arrendamiento bienes muebles (4%)</option>
+              <option value="arrend_inmueble" data-rf="3.5" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="0" data-cuantia_txt="Sin mínimo">Arrendamiento bienes inmuebles (3.5%)</option>
+            </optgroup>
+          </select>
+          <div class="tarifas-auto" id="tarifas-auto"></div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Valor bruto del pago ($)</label>
+            <input type="number" id="valor" placeholder="0" min="0" oninput="verificarCuantia()" />
+            <div class="alerta-cuantia" id="alerta-cuantia"></div>
+          </div>
+          <div>
+            <label>¿Aplica IVA?</label>
+            <select id="aplica_iva">
+              <option value="no">No aplica</option>
+              <option value="si">Sí — 19%</option>
+            </select>
+            <div class="hint">Retefuente se calcula sobre valor sin IVA</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>% Retefuente (ajustable)</label>
+            <input type="number" id="pct_rf" placeholder="0" step="0.1" min="0" max="100" />
+          </div>
+          <div>
+            <label>% ReteICA Cali (ajustable)</label>
+            <input type="number" id="pct_rica" placeholder="0" step="0.001" min="0" max="100" />
+            <div class="hint">Cali retiene el 100% de la tarifa ICA</div>
+          </div>
+        </div>
+
+        <div class="form-full">
+          <label>Régimen tributario del proveedor</label>
+          <select id="regimen">
+            <option value="ordinario">Régimen ordinario</option>
+            <option value="simple">Régimen SIMPLE — No sujeto a Retefuente</option>
+            <option value="autorretenedor">Autorretenedor DIAN</option>
+          </select>
+        </div>
+
+        <button class="btn-calcular" onclick="calcular()">Calcular retenciones 2026</button>
+        <button class="btn-limpiar" onclick="limpiar()">Limpiar formulario</button>
+      </div>
+    </div>
+
+    <div class="right-col">
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Resultado del cálculo</div>
+        <div id="resultado-area">
+          <div class="empty-state">Selecciona el concepto, ingresa el valor<br>y presiona "Calcular retenciones 2026"</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Referencia normativa 2026</div>
+        <div class="ref-row"><span>Honorarios Pers. jurídica<span class="art">Art. 392 ET</span></span><b>RF 11% · Sin mínimo</b></div>
+        <div class="ref-row"><span>Honorarios Pers. natural dec.<span class="art">Art. 392 ET</span></span><b>RF 10% · Sin mínimo</b></div>
+        <div class="ref-row"><span>Servicios declarante<span class="art">Art. 392 ET</span></span><b>RF 4% · Mín $209.496</b></div>
+        <div class="ref-row"><span>Servicios no declarante</span><b>RF 6% · Mín $209.496</b></div>
+        <div class="ref-row"><span>Vigilancia / Aseo / Mant.</span><b>RF 2% · Mín $209.496</b></div>
+        <div class="ref-row"><span>Compras declarante</span><b>RF 2.5% · Mín $1.414.098</b></div>
+        <div class="ref-row"><span>Compras no declarante</span><b>RF 3.5% · Mín $1.414.098</b></div>
+        <div class="ref-row"><span>Transp. pasajeros</span><b>RF 3.5% · Mín $524.000</b></div>
+        <div class="ref-row"><span>ReteICA Cali<span class="art">Acuerdo Cali</span></span><b>100% tarifa ICA (varía x actividad)</b></div>
+        <div class="ref-row"><span>ReteIVA<span class="art">Art. 437-1 ET</span></span><b>15% del IVA facturado</b></div>
+        <div class="info-box">
+          Fuentes: Resolución DIAN 000238/2025 · Decreto 0572/2025 · Estatuto Tributario Arts. 367–419 · Acuerdo Municipal Cali. Consulte siempre con el contador la tarifa aplicable a cada caso.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">GestorPH · Módulo Retenciones 2026 · UVT $52.374 · Res. DIAN 000238/2025 · Decreto 0572/2025</div>
+</div>
+
+<script>
+var conceptoData = {};
+
+function fmt(n) { return '$' + Math.round(n).toLocaleString('es-CO'); }
+
+function seleccionarConcepto() {
+  var sel = document.getElementById('concepto');
+  var opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.dataset.rf) { document.getElementById('tarifas-auto').style.display = 'none'; return; }
+  conceptoData = { rf: parseFloat(opt.dataset.rf), rica_min: parseFloat(opt.dataset.rica_min), rica_max: parseFloat(opt.dataset.rica_max), cuantia: parseFloat(opt.dataset.cuantia), cuantia_txt: opt.dataset.cuantia_txt };
+  document.getElementById('pct_rf').value = conceptoData.rf;
+  document.getElementById('pct_rica').value = conceptoData.rica_min;
+  var box = document.getElementById('tarifas-auto');
+  box.innerHTML = 'Retefuente sugerida: <b>' + conceptoData.rf + '%</b> · ReteICA Cali referencia: <b>' + conceptoData.rica_min + '‰ – ' + conceptoData.rica_max + '‰</b> · Cuantía mínima: <b>' + (conceptoData.cuantia === 0 ? 'Sin mínimo' : fmt(conceptoData.cuantia)) + '</b>';
+  box.style.display = 'block';
+  verificarCuantia();
+}
+
+function verificarCuantia() {
+  var valor = parseFloat(document.getElementById('valor').value) || 0;
+  var alerta = document.getElementById('alerta-cuantia');
+  if (conceptoData.cuantia > 0 && valor > 0 && valor <= conceptoData.cuantia) {
+    alerta.innerHTML = 'El valor $' + valor.toLocaleString('es-CO') + ' no supera la cuantía mínima (' + conceptoData.cuantia_txt + '). No aplica retención.';
+    alerta.style.display = 'block';
+  } else { alerta.style.display = 'none'; }
+}
+
+function calcular() {
+  var valor = parseFloat(document.getElementById('valor').value) || 0;
+  var pct_rf = parseFloat(document.getElementById('pct_rf').value) || 0;
+  var pct_rica = parseFloat(document.getElementById('pct_rica').value) || 0;
+  var aplica_iva = document.getElementById('aplica_iva').value;
+  var regimen = document.getElementById('regimen').value;
+  var sel = document.getElementById('concepto');
+  var concepto_txt = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '—';
+  var area = document.getElementById('resultado-area');
+
+  if (valor <= 0) { area.innerHTML = '<div class="empty-state" style="color:#c0392b;">Ingresa un valor mayor a cero.</div>'; return; }
+
+  if (regimen === 'simple') {
+    area.innerHTML = '<div class="no-aplica-msg">El proveedor está en <b>Régimen SIMPLE</b>.<br>No aplica Retefuente por renta según Art. 911 ET.<br>Verifique si aplica ReteICA según normativa municipal.</div>'; return;
+  }
+
+  if (conceptoData.cuantia > 0 && valor <= conceptoData.cuantia) {
+    area.innerHTML = '<div class="no-aplica-msg">El valor <b>' + fmt(valor) + '</b> no supera la cuantía mínima.<br><b>No aplica retención</b> para este concepto.<br>(' + (conceptoData.cuantia_txt || '') + ')</div>'; return;
+  }
+
+  var iva = aplica_iva === 'si' ? valor * 0.19 : 0;
+  var rete_iva = aplica_iva === 'si' ? iva * 0.15 : 0;
+  var retefuente = valor * (pct_rf / 100);
+  var reteica = valor * (pct_rica / 100);
+  var total_ret = retefuente + reteica + rete_iva;
+  var valor_con_iva = valor + iva;
+  var neto = valor_con_iva - total_ret;
+
+  var html = '';
+  html += '<div class="result-row"><span class="result-label">Concepto</span><span class="result-value" style="font-size:11px;text-align:right;max-width:55%;">' + concepto_txt + '</span></div>';
+  html += '<div class="result-row"><span class="result-label">Valor base (sin IVA)</span><span class="result-value">' + fmt(valor) + '</span></div>';
+  if (aplica_iva === 'si') {
+    html += '<div class="result-row"><span class="result-label">IVA 19%</span><span class="result-value">' + fmt(iva) + '</span></div>';
+    html += '<div class="result-row"><span class="result-label">ReteIVA — 15% del IVA <small style="color:#aaa">(Art.437-1 ET)</small></span><span class="result-value red">− ' + fmt(rete_iva) + '</span></div>';
+  }
+  html += '<div class="result-row"><span class="result-label">Retefuente ' + pct_rf + '% <small style="color:#aaa">(Arts.392-401 ET)</small></span><span class="result-value red">− ' + fmt(retefuente) + '</span></div>';
+  html += '<div class="result-row"><span class="result-label">ReteICA Cali ' + pct_rica + '‰</span><span class="result-value red">− ' + fmt(reteica) + '</span></div>';
+
+  html += '<div class="total-box"><div class="total-label">Total retenciones a declarar (Form. 350)</div><div class="total-value">' + fmt(total_ret) + '</div></div>';
+  html += '<div class="neto-box"><div class="neto-label">Neto a pagar al proveedor</div><div class="neto-value">' + fmt(neto) + '</div></div>';
+
+  area.innerHTML = html;
+}
+
+function limpiar() {
+  document.getElementById('concepto').value = '';
+  document.getElementById('valor').value = '';
+  document.getElementById('aplica_iva').value = 'no';
+  document.getElementById('pct_rf').value = '';
+  document.getElementById('pct_rica').value = '';
+  document.getElementById('regimen').value = 'ordinario';
+  document.getElementById('tarifas-auto').style.display = 'none';
+  document.getElementById('alerta-cuantia').style.display = 'none';
+  document.getElementById('resultado-area').innerHTML = '<div class="empty-state">Selecciona el concepto, ingresa el valor<br>y presiona "Calcular retenciones 2026"</div>';
+  conceptoData = {};
+}
+</script>

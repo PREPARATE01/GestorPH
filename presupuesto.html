@@ -1,0 +1,340 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .page { display: flex; flex-direction: column; min-height: 680px; background: #f4f4f2; font-family: var(--font-sans); }
+  .topbar { background: #fff; border-bottom: 0.5px solid #e0deda; padding: 0.85rem 1.5rem; display: flex; align-items: center; gap: 12px; }
+  .back-btn { font-size: 12px; color: #C9A84C; cursor: pointer; background: none; border: none; padding: 0; }
+  .topbar-sep { color: #ddd; }
+  .topbar-title { font-size: 15px; font-weight: 500; color: #1a1a1a; }
+  .topbar-badge { margin-left: auto; background: #fdf3dc; color: #b8953e; font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 0.5px solid #e8d5a0; }
+
+  .tabs { display: flex; background: #fff; border-bottom: 0.5px solid #e0deda; padding: 0 1.25rem; }
+  .tab { font-size: 12px; color: #aaa; padding: 10px 16px; cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; background: none; border-top: none; border-left: none; border-right: none; }
+  .tab.active { color: #C9A84C; border-bottom-color: #C9A84C; font-weight: 500; }
+  .tab:hover { color: #C9A84C; }
+
+  .panel { display: none; padding: 1.25rem; flex: 1; flex-direction: column; gap: 1rem; }
+  .panel.active { display: flex; }
+
+  .stats-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+  .stat-card { background: #fff; border: 0.5px solid #e0deda; border-radius: 8px; padding: 0.8rem 1rem; }
+  .stat-label { font-size: 11px; color: #aaa; margin-bottom: 4px; }
+  .stat-value { font-size: 17px; font-weight: 500; color: #1a1a1a; }
+  .stat-sub { font-size: 10px; margin-top: 2px; }
+  .stat-sub.red { color: #c0392b; }
+  .stat-sub.green { color: #27ae60; }
+  .stat-sub.gold { color: #C9A84C; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .card { background: #fff; border: 0.5px solid #e0deda; border-radius: 10px; padding: 1rem 1.25rem; }
+  .card-title { font-size: 11px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 8px; }
+  .card-title-dot { width: 6px; height: 6px; border-radius: 50%; background: #C9A84C; flex-shrink: 0; }
+  .card-title-btn { margin-left: auto; background: #C9A84C; color: #fff; border: none; border-radius: 5px; font-size: 11px; padding: 4px 10px; cursor: pointer; }
+  .card-title-btn:hover { background: #b8953e; }
+
+  label { font-size: 11px; color: #666; display: block; margin-bottom: 4px; }
+  input[type=number], input[type=text], select { width: 100%; background: #fafaf8; border: 0.5px solid #dddbd5; border-radius: 5px; color: #1a1a1a; font-size: 12px; padding: 7px 9px; outline: none; }
+  input:focus, select:focus { border-color: #C9A84C; }
+  input::placeholder { color: #bbb; }
+
+  .form-row-3 { display: grid; grid-template-columns: 1.5fr 1fr 1fr 0.7fr; gap: 8px; margin-bottom: 8px; align-items: end; }
+  .btn-add { background: #C9A84C; color: #fff; border: none; border-radius: 5px; font-size: 12px; padding: 7px 10px; cursor: pointer; width: 100%; transition: background 0.2s; }
+  .btn-add:hover { background: #b8953e; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  thead th { font-size: 10px; color: #aaa; font-weight: 500; text-align: left; padding: 6px 8px; border-bottom: 0.5px solid #e0deda; text-transform: uppercase; letter-spacing: 0.3px; }
+  tbody tr { border-bottom: 0.5px solid #f0eeea; transition: background 0.1s; }
+  tbody tr:hover { background: #fdf9f2; }
+  tbody td { padding: 6px 8px; color: #333; vertical-align: middle; font-size: 12px; }
+  tbody tr:last-child { border-bottom: none; }
+  tfoot td { padding: 8px; font-size: 12px; font-weight: 500; background: #fdf3dc; color: #b8953e; border-top: 1px solid #e8d5a0; }
+
+  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .badge.verde { background: #eafaf1; color: #27ae60; border: 0.5px solid #c3dfc3; }
+  .badge.rojo { background: #fdf0ef; color: #c0392b; border: 0.5px solid #f5c6c5; }
+  .badge.naranja { background: #fef6e7; color: #d68910; border: 0.5px solid #f9d98a; }
+  .badge.gris { background: #f4f4f2; color: #888; border: 0.5px solid #e0deda; }
+
+  .btn-del { background: none; border: 0.5px solid #f5c6c5; border-radius: 4px; color: #c0392b; font-size: 10px; padding: 2px 6px; cursor: pointer; }
+  .btn-del:hover { background: #fdf0ef; }
+
+  .barra-wrap { width: 100%; background: #f0eeea; border-radius: 10px; height: 6px; margin-top: 4px; }
+  .barra-fill { height: 6px; border-radius: 10px; transition: width 0.4s; }
+  .barra-fill.green { background: #27ae60; }
+  .barra-fill.gold { background: #C9A84C; }
+  .barra-fill.red { background: #c0392b; }
+
+  .alerta-item { display: flex; align-items: flex-start; gap: 8px; padding: 7px 0; border-bottom: 0.5px solid #f0eeea; font-size: 12px; }
+  .alerta-item:last-child { border-bottom: none; }
+  .alerta-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+  .alerta-dot.red { background: #c0392b; }
+  .alerta-dot.gold { background: #C9A84C; }
+  .alerta-dot.green { background: #27ae60; }
+  .alerta-txt { color: #555; line-height: 1.5; }
+  .alerta-txt b { color: #333; }
+
+  .empty-state { text-align: center; padding: 1.5rem 1rem; color: #ccc; font-size: 12px; }
+  .status-bar { background: #C9A84C; color: #fff; text-align: center; font-size: 11px; font-weight: 500; padding: 5px; letter-spacing: 0.5px; }
+
+  .prog-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .prog-label { font-size: 12px; color: #555; flex: 1; }
+  .prog-pct { font-size: 12px; font-weight: 500; min-width: 45px; text-align: right; margin-left: 8px; }
+  .prog-bar-wrap { flex: 1.5; margin: 0 10px; background: #f0eeea; border-radius: 10px; height: 7px; }
+  .prog-bar-fill { height: 7px; border-radius: 10px; }
+</style>
+
+<div class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="sendPrompt('Volver al dashboard principal de GestorPH')">← Volver</button>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-title">Análisis de Presupuesto</span>
+    <span class="topbar-badge">Ejecutado vs Aprobado · Asamblea</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('ingresos')">Ingresos</button>
+    <button class="tab" onclick="showTab('gastos')">Gastos</button>
+    <button class="tab" onclick="showTab('resumen')">Resumen y Alertas</button>
+  </div>
+
+  <!-- TAB INGRESOS -->
+  <div class="panel active" id="tab-ingresos">
+    <div class="stats-row" id="stats-ing"></div>
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot"></span>Registrar rubro de ingresos</div>
+      <div class="form-row-3">
+        <div><label>Concepto de ingreso</label>
+          <select id="i-concepto">
+            <option>Cuotas de administración</option>
+            <option>Cuotas extraordinarias</option>
+            <option>Multas e intereses de mora</option>
+            <option>Arrendamiento zonas comunes</option>
+            <option>Rendimientos financieros</option>
+            <option>Otros ingresos</option>
+          </select>
+        </div>
+        <div><label>Presupuestado ($)</label><input type="number" id="i-presup" placeholder="0" /></div>
+        <div><label>Ejecutado ($)</label><input type="number" id="i-ejec" placeholder="0" /></div>
+        <div><button class="btn-add" onclick="addIngreso()">+ Agregar</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot"></span>Ejecución presupuestal — Ingresos</div>
+      <div id="tabla-ing-wrap">
+        <div class="empty-state">Agrega rubros de ingreso para ver la ejecución</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB GASTOS -->
+  <div class="panel" id="tab-gastos">
+    <div class="stats-row" id="stats-gto"></div>
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot"></span>Registrar rubro de gastos</div>
+      <div class="form-row-3">
+        <div><label>Concepto de gasto</label>
+          <select id="g-concepto">
+            <option>Administración y personal</option>
+            <option>Servicios públicos</option>
+            <option>Mantenimiento y reparaciones</option>
+            <option>Vigilancia y seguridad</option>
+            <option>Honorarios contador / revisor fiscal</option>
+            <option>Seguros</option>
+            <option>Gastos bancarios</option>
+            <option>Aseo y limpieza</option>
+            <option>Zonas comunes</option>
+            <option>Fondo de imprevistos</option>
+            <option>Otros gastos</option>
+          </select>
+        </div>
+        <div><label>Presupuestado ($)</label><input type="number" id="g-presup" placeholder="0" /></div>
+        <div><label>Ejecutado ($)</label><input type="number" id="g-ejec" placeholder="0" /></div>
+        <div><button class="btn-add" onclick="addGasto()">+ Agregar</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot"></span>Ejecución presupuestal — Gastos</div>
+      <div id="tabla-gto-wrap">
+        <div class="empty-state">Agrega rubros de gasto para ver la ejecución</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB RESUMEN -->
+  <div class="panel" id="tab-resumen">
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Resumen consolidado</div>
+        <div id="resumen-contenido"><div class="empty-state">Registra ingresos y gastos para ver el resumen</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Ejecución por rubro — Ingresos</div>
+        <div id="prog-ingresos"><div class="empty-state">Sin datos aún</div></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Alertas y recomendaciones</div>
+        <div id="alertas-contenido"><div class="empty-state">Las alertas aparecerán al registrar datos</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot"></span>Ejecución por rubro — Gastos</div>
+        <div id="prog-gastos"><div class="empty-state">Sin datos aún</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">GestorPH · Módulo Presupuesto · Ejecución aprobada en Asamblea · Ley 675/2001</div>
+</div>
+
+<script>
+var ingresos = [];
+var gastos = [];
+
+function fmt(n) { return '$' + Math.round(n).toLocaleString('es-CO'); }
+function pct(ej, pr) { return pr > 0 ? ((ej / pr) * 100).toFixed(1) : 0; }
+
+function showTab(tab) {
+  var tabs = ['ingresos','gastos','resumen'];
+  document.querySelectorAll('.tab').forEach(function(t,i) { t.classList.toggle('active', tabs[i] === tab); });
+  document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'resumen') renderResumen();
+}
+
+function badgePct(p) {
+  var n = parseFloat(p);
+  if (n >= 90 && n <= 100) return '<span class="badge verde">En meta</span>';
+  if (n > 100) return '<span class="badge rojo">Sobre ejecutado</span>';
+  if (n >= 70) return '<span class="badge naranja">En proceso</span>';
+  return '<span class="badge gris">Bajo</span>';
+}
+
+function colorBarra(p) {
+  var n = parseFloat(p);
+  if (n > 100) return 'red';
+  if (n >= 70) return 'gold';
+  return 'green';
+}
+
+function renderTabla(arr, wrapId, tipo) {
+  var wrap = document.getElementById(wrapId);
+  if (arr.length === 0) { wrap.innerHTML = '<div class="empty-state">Agrega rubros de ' + tipo + ' para ver la ejecución</div>'; return; }
+  var totalP = 0, totalE = 0;
+  var html = '<table><thead><tr><th>Concepto</th><th>Presupuestado</th><th>Ejecutado</th><th>% Ejec.</th><th>Variación</th><th>Estado</th><th></th></tr></thead><tbody>';
+  arr.forEach(function(r, i) {
+    var p = pct(r.ejec, r.presup);
+    var vari = r.ejec - r.presup;
+    totalP += r.presup; totalE += r.ejec;
+    html += '<tr>';
+    html += '<td>' + r.concepto + '</td>';
+    html += '<td>' + fmt(r.presup) + '</td>';
+    html += '<td>' + fmt(r.ejec) + '</td>';
+    html += '<td><b>' + p + '%</b><div class="barra-wrap"><div class="barra-fill ' + colorBarra(p) + '" style="width:' + Math.min(parseFloat(p),100) + '%"></div></div></td>';
+    html += '<td style="color:' + (vari >= 0 ? '#27ae60' : '#c0392b') + ';font-weight:500;">' + (vari >= 0 ? '+' : '') + fmt(vari) + '</td>';
+    html += '<td>' + badgePct(p) + '</td>';
+    html += '<td><button class="btn-del" onclick="eliminar(\'' + tipo + '\',' + i + ')">✕</button></td>';
+    html += '</tr>';
+  });
+  var tp = pct(totalE, totalP);
+  html += '</tbody><tfoot><tr><td>TOTAL</td><td>' + fmt(totalP) + '</td><td>' + fmt(totalE) + '</td><td>' + tp + '%</td><td style="color:' + (totalE - totalP >= 0 ? '#27ae60' : '#c0392b') + ';">' + (totalE >= totalP ? '+' : '') + fmt(totalE - totalP) + '</td><td colspan="2"></td></tr></tfoot></table>';
+  wrap.innerHTML = html;
+  actualizarStats(arr, tipo === 'ingreso' ? 'stats-ing' : 'stats-gto', tipo);
+}
+
+function actualizarStats(arr, id, tipo) {
+  var totalP = arr.reduce(function(s,r){ return s + r.presup; }, 0);
+  var totalE = arr.reduce(function(s,r){ return s + r.ejec; }, 0);
+  var tp = pct(totalE, totalP);
+  var sobre = arr.filter(function(r){ return r.ejec > r.presup; }).length;
+  var bajo = arr.filter(function(r){ return pct(r.ejec, r.presup) < 70; }).length;
+  document.getElementById(id).innerHTML =
+    '<div class="stat-card"><div class="stat-label">Total presupuestado</div><div class="stat-value">' + fmt(totalP) + '</div><div class="stat-sub gold">Aprobado asamblea</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Total ejecutado</div><div class="stat-value">' + fmt(totalE) + '</div><div class="stat-sub ' + (totalE <= totalP ? 'green' : 'red') + '">' + (totalE <= totalP ? 'Dentro del presupuesto' : 'Sobre el presupuesto') + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">% de ejecución</div><div class="stat-value">' + tp + '%</div><div class="stat-sub gold">Del período</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Rubros con alerta</div><div class="stat-value">' + (sobre + bajo) + '</div><div class="stat-sub red">Revisar</div></div>';
+}
+
+function addIngreso() {
+  var concepto = document.getElementById('i-concepto').value;
+  var presup = parseFloat(document.getElementById('i-presup').value) || 0;
+  var ejec = parseFloat(document.getElementById('i-ejec').value) || 0;
+  if (presup <= 0) { alert('Ingresa el valor presupuestado.'); return; }
+  ingresos.push({ concepto, presup, ejec });
+  renderTabla(ingresos, 'tabla-ing-wrap', 'ingreso');
+  document.getElementById('i-presup').value = '';
+  document.getElementById('i-ejec').value = '';
+}
+
+function addGasto() {
+  var concepto = document.getElementById('g-concepto').value;
+  var presup = parseFloat(document.getElementById('g-presup').value) || 0;
+  var ejec = parseFloat(document.getElementById('g-ejec').value) || 0;
+  if (presup <= 0) { alert('Ingresa el valor presupuestado.'); return; }
+  gastos.push({ concepto, presup, ejec });
+  renderTabla(gastos, 'tabla-gto-wrap', 'gasto');
+  document.getElementById('g-presup').value = '';
+  document.getElementById('g-ejec').value = '';
+}
+
+function eliminar(tipo, i) {
+  if (tipo === 'ingreso') { ingresos.splice(i,1); renderTabla(ingresos, 'tabla-ing-wrap', 'ingreso'); }
+  else { gastos.splice(i,1); renderTabla(gastos, 'tabla-gto-wrap', 'gasto'); }
+}
+
+function renderResumen() {
+  var tpi = ingresos.reduce(function(s,r){ return s + r.presup; },0);
+  var tei = ingresos.reduce(function(s,r){ return s + r.ejec; },0);
+  var tpg = gastos.reduce(function(s,r){ return s + r.presup; },0);
+  var teg = gastos.reduce(function(s,r){ return s + r.ejec; },0);
+  var superavit_p = tpi - tpg;
+  var superavit_e = tei - teg;
+
+  if (tpi === 0 && tpg === 0) {
+    document.getElementById('resumen-contenido').innerHTML = '<div class="empty-state">Registra ingresos y gastos para ver el resumen</div>';
+    document.getElementById('alertas-contenido').innerHTML = '<div class="empty-state">Las alertas aparecerán al registrar datos</div>';
+    document.getElementById('prog-ingresos').innerHTML = '<div class="empty-state">Sin datos aún</div>';
+    document.getElementById('prog-gastos').innerHTML = '<div class="empty-state">Sin datos aún</div>';
+    return;
+  }
+
+  var r = '<div class="ef-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid #f0eeea;font-size:12px;"><span style="color:#666;">Ingresos presupuestados</span><b>' + fmt(tpi) + '</b></div>';
+  r += '<div class="ef-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid #f0eeea;font-size:12px;"><span style="color:#666;">Ingresos ejecutados</span><b style="color:#27ae60;">' + fmt(tei) + '</b></div>';
+  r += '<div class="ef-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid #f0eeea;font-size:12px;"><span style="color:#666;">Gastos presupuestados</span><b>' + fmt(tpg) + '</b></div>';
+  r += '<div class="ef-row" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid #f0eeea;font-size:12px;"><span style="color:#666;">Gastos ejecutados</span><b style="color:#c0392b;">' + fmt(teg) + '</b></div>';
+  r += '<div style="background:#fdf3dc;border-radius:8px;padding:10px 12px;margin-top:10px;"><div style="font-size:11px;color:#b8953e;margin-bottom:3px;">Resultado presupuestado</div><div style="font-size:18px;font-weight:500;color:' + (superavit_p >= 0 ? '#27ae60' : '#c0392b') + ';">' + fmt(superavit_p) + '</div></div>';
+  r += '<div style="background:' + (superavit_e >= 0 ? '#f0f8f0' : '#fdf0ef') + ';border-radius:8px;padding:10px 12px;margin-top:8px;"><div style="font-size:11px;color:' + (superavit_e >= 0 ? '#27ae60' : '#c0392b') + ';margin-bottom:3px;">Resultado ejecutado</div><div style="font-size:18px;font-weight:500;color:' + (superavit_e >= 0 ? '#27ae60' : '#c0392b') + ';">' + fmt(superavit_e) + '</div></div>';
+  document.getElementById('resumen-contenido').innerHTML = r;
+
+  var alertas = [];
+  gastos.forEach(function(g) {
+    var p = parseFloat(pct(g.ejec, g.presup));
+    if (p > 110) alertas.push({ color: 'red', txt: '<b>' + g.concepto + '</b>: ejecutado ' + p.toFixed(1) + '% del presupuesto. Sobreejecución de ' + fmt(g.ejec - g.presup) + '.' });
+    else if (p > 100) alertas.push({ color: 'gold', txt: '<b>' + g.concepto + '</b>: levemente sobre el presupuesto (' + p.toFixed(1) + '%). Monitorear.' });
+  });
+  ingresos.forEach(function(ig) {
+    var p = parseFloat(pct(ig.ejec, ig.presup));
+    if (p < 70) alertas.push({ color: 'red', txt: '<b>' + ig.concepto + '</b>: solo se ha recaudado el ' + p.toFixed(1) + '% del ingreso esperado. Revisar cartera.' });
+  });
+  if (superavit_e < 0) alertas.push({ color: 'red', txt: 'La ejecución presenta <b>déficit de ' + fmt(Math.abs(superavit_e)) + '</b>. Se recomienda revisión urgente del presupuesto ante la asamblea.' });
+  if (superavit_e >= 0 && alertas.length === 0) alertas.push({ color: 'green', txt: 'La ejecución presupuestal está dentro de los parámetros aprobados en asamblea. Continúa el monitoreo mensual.' });
+
+  document.getElementById('alertas-contenido').innerHTML = alertas.length ? alertas.map(function(a) {
+    return '<div class="alerta-item"><div class="alerta-dot ' + a.color + '"></div><div class="alerta-txt">' + a.txt + '</div></div>';
+  }).join('') : '<div class="empty-state">Sin alertas por ahora</div>';
+
+  var pi = ingresos.map(function(r) {
+    var p = Math.min(parseFloat(pct(r.ejec, r.presup)), 100);
+    var c = parseFloat(pct(r.ejec, r.presup)) >= 90 ? '#27ae60' : parseFloat(pct(r.ejec, r.presup)) >= 70 ? '#C9A84C' : '#c0392b';
+    return '<div class="prog-row"><div class="prog-label">' + r.concepto + '</div><div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:' + p + '%;background:' + c + ';height:7px;border-radius:10px;"></div></div><div class="prog-pct" style="color:' + c + ';">' + pct(r.ejec, r.presup) + '%</div></div>';
+  }).join('');
+  document.getElementById('prog-ingresos').innerHTML = pi || '<div class="empty-state">Sin ingresos registrados</div>';
+
+  var pg = gastos.map(function(r) {
+    var p = Math.min(parseFloat(pct(r.ejec, r.presup)), 100);
+    var c = parseFloat(pct(r.ejec, r.presup)) > 100 ? '#c0392b' : parseFloat(pct(r.ejec, r.presup)) >= 80 ? '#C9A84C' : '#27ae60';
+    return '<div class="prog-row"><div class="prog-label">' + r.concepto + '</div><div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:' + p + '%;background:' + c + ';height:7px;border-radius:10px;"></div></div><div class="prog-pct" style="color:' + c + ';">' + pct(r.ejec, r.presup) + '%</div></div>';
+  }).join('');
+  document.getElementById('prog-gastos').innerHTML = pg || '<div class="empty-state">Sin gastos registrados</div>';
+}
+</script>
