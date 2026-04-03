@@ -88,6 +88,7 @@
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="3" stroke="#C9A84C" stroke-width="1.2"/><path d="M1 14c0-2.8 2.2-4 5-4s5 1.2 5 4" stroke="#C9A84C" stroke-width="1.2" fill="none"/><line x1="11" y1="6" x2="15" y2="6" stroke="#C9A84C" stroke-width="1.2"/><line x1="13" y1="4" x2="13" y2="8" stroke="#C9A84C" stroke-width="1.2"/></svg>
   <span class="topbar-title">Gestión de Clientes / Copropiedades</span>
   <span class="topbar-badge">Administración · GestorPH</span>
+  <span id="usuario-activo-badge" style="font-size:11px;color:#888;margin-left:8px;"></span>
 </div>
 
 <div class="stats-row" id="stats-row">
@@ -255,7 +256,12 @@
 <div class="status-bar">GestorPH · Módulo Clientes · Gestión de Copropiedades · Ley 675/2001</div>
 
 <script>
-  var clientes = JSON.parse(localStorage.getItem('gestorph_clientes') || '[]');
+  var params = new URLSearchParams(window.location.search);
+  var usuarioActivo = params.get('u') || 'demo';
+  var esAdmin = params.get('admin') === '1';
+  var STORAGE_KEY = 'gestorph_clientes_' + usuarioActivo;
+
+  var clientes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   var editandoId = null;
 
   function fmt(n) { return '$' + Math.round(n).toLocaleString('es-CO'); }
@@ -305,7 +311,7 @@
       clientes.push(cliente);
     }
 
-    localStorage.setItem('gestorph_clientes', JSON.stringify(clientes));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clientes));
     renderTabla(clientes);
     actualizarStats();
     limpiarFormulario();
@@ -384,7 +390,7 @@
     if (!c) return;
     if (!confirm('¿Segura que deseas eliminar "' + c.nombre + '"? Esta acción no se puede deshacer.')) return;
     clientes = clientes.filter(function(x){ return x.id !== id; });
-    localStorage.setItem('gestorph_clientes', JSON.stringify(clientes));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clientes));
     renderTabla(clientes);
     actualizarStats();
     document.getElementById('ficha-contenido').innerHTML = '<div class="empty-ficha">Haz clic en "Ver" para ver el detalle de un cliente</div>';
@@ -430,6 +436,9 @@
 
   renderTabla(clientes);
   actualizarStats();
+
+  var badge = document.getElementById('usuario-activo-badge');
+  if (badge) badge.textContent = 'Usuario: ' + decodeURIComponent(usuarioActivo);
 </script>
 </body>
 </html>

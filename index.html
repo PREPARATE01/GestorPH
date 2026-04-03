@@ -553,7 +553,9 @@
     var m = modulos[nombre];
     if (!m) return;
     moduloActual = nombre;
-    document.getElementById('module-frame').src = m.archivo;
+    var userParam = usuarioActual ? encodeURIComponent(usuarioActual.email) : 'demo';
+    var esAdminParam = (usuarioActual && usuarioActual.esAdmin) ? '1' : '0';
+    document.getElementById('module-frame').src = m.archivo + '?u=' + userParam + '&admin=' + esAdminParam;
     document.getElementById('topbar-title').textContent = m.titulo;
     document.getElementById('topbar-sub').textContent   = m.sub;
     document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
