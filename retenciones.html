@@ -1,259 +1,909 @@
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Retenciones — GestorPH</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  .page { display: flex; flex-direction: column; min-height: 640px; background: #f4f4f2; font-family: var(--font-sans); }
-  .topbar { background: #fff; border-bottom: 0.5px solid #e0deda; padding: 0.85rem 1.5rem; display: flex; align-items: center; gap: 12px; }
-  .back-btn { font-size: 12px; color: #C9A84C; cursor: pointer; background: none; border: none; padding: 0; }
-  .topbar-sep { color: #ddd; font-size: 14px; }
-  .topbar-title { font-size: 15px; font-weight: 500; color: #1a1a1a; }
-  .topbar-badge { margin-left: auto; background: #fdf3dc; color: #b8953e; font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 0.5px solid #e8d5a0; }
-  .content { display: flex; gap: 1rem; padding: 1.25rem; flex: 1; }
-  .left-col { flex: 1.1; display: flex; flex-direction: column; gap: 1rem; }
-  .right-col { flex: 0.9; display: flex; flex-direction: column; gap: 1rem; }
-  .card { background: #fff; border: 0.5px solid #e0deda; border-radius: 10px; padding: 1.1rem 1.25rem; }
-  .card-title { font-size: 11px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
-  .card-title-dot { width: 6px; height: 6px; border-radius: 50%; background: #C9A84C; flex-shrink: 0; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-  .form-full { margin-bottom: 10px; }
-  label { font-size: 12px; color: #666; display: block; margin-bottom: 5px; }
-  .hint { font-size: 10px; color: #C9A84C; margin-top: 3px; }
-  input[type=number], select {
-    width: 100%; background: #fafaf8; border: 0.5px solid #dddbd5; border-radius: 6px;
-    color: #1a1a1a; font-size: 13px; padding: 8px 11px; outline: none;
-  }
-  input:focus, select:focus { border-color: #C9A84C; background: #fffdf7; }
-  .alerta-cuantia { font-size: 11px; color: #c0392b; background: #fdf0ef; border: 0.5px solid #f5c6c5; border-radius: 5px; padding: 6px 10px; margin-top: 6px; display: none; }
-  .tarifas-auto { background: #f7f6f2; border-radius: 6px; padding: 8px 10px; margin-top: 4px; font-size: 11px; color: #888; display: none; }
-  .tarifas-auto b { color: #b8953e; }
-  .btn-calcular { width: 100%; background: #C9A84C; color: #fff; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; padding: 11px; cursor: pointer; margin-top: 0.5rem; transition: background 0.2s, transform 0.1s; }
-  .btn-calcular:hover { background: #b8953e; }
-  .btn-calcular:active { transform: scale(0.98); }
-  .btn-limpiar { width: 100%; background: transparent; color: #aaa; border: 0.5px solid #dddbd5; border-radius: 6px; font-size: 13px; padding: 9px; cursor: pointer; margin-top: 6px; transition: border-color 0.2s, color 0.2s; }
-  .btn-limpiar:hover { border-color: #C9A84C; color: #C9A84C; }
-  .result-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid #f0eeea; font-size: 13px; }
-  .result-row:last-of-type { border-bottom: none; }
-  .result-label { color: #666; font-size: 12px; }
-  .result-value { font-weight: 500; color: #1a1a1a; }
-  .result-value.red { color: #c0392b; }
-  .result-value.green { color: #27ae60; }
-  .total-box { background: #fdf3dc; border: 0.5px solid #e8d5a0; border-radius: 8px; padding: 0.85rem 1.1rem; margin-top: 0.75rem; }
-  .total-label { font-size: 11px; color: #b8953e; margin-bottom: 3px; }
-  .total-value { font-size: 21px; font-weight: 500; color: #b8953e; }
-  .neto-box { background: #f0f8f0; border: 0.5px solid #c3dfc3; border-radius: 8px; padding: 0.85rem 1.1rem; margin-top: 8px; }
-  .neto-label { font-size: 11px; color: #27ae60; margin-bottom: 3px; }
-  .neto-value { font-size: 21px; font-weight: 500; color: #27ae60; }
-  .empty-state { text-align: center; padding: 2rem 1rem; color: #ccc; font-size: 13px; }
-  .ref-row { display: flex; justify-content: space-between; font-size: 11px; color: #999; padding: 5px 0; border-bottom: 0.5px solid #f0eeea; }
-  .ref-row:last-child { border-bottom: none; }
-  .ref-row b { color: #555; font-weight: 500; }
-  .ref-row span.art { color: #C9A84C; font-size: 10px; margin-left: 4px; }
-  .info-box { background: #f4f4f2; border-radius: 6px; padding: 0.7rem; font-size: 11px; color: #888; line-height: 1.6; border-left: 2px solid #C9A84C; margin-top: 0.75rem; }
-  .uvt-banner { background: #fdf3dc; border: 0.5px solid #e8d5a0; border-radius: 6px; padding: 6px 12px; font-size: 11px; color: #b8953e; margin-bottom: 0.75rem; display: flex; justify-content: space-between; }
-  .status-bar { background: #C9A84C; color: #fff; text-align: center; font-size: 11px; font-weight: 500; padding: 5px; letter-spacing: 0.5px; }
-  .no-aplica-msg { background: #fdf0ef; border: 0.5px solid #f5c6c5; border-radius: 8px; padding: 1rem; color: #c0392b; font-size: 13px; text-align: center; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --gold:#C9A84C;--gold-d:#b8953e;--gold-l:#fdf3dc;--gold-b:#e8d5a0;
+  --bg:#f4f4f2;--white:#fff;--border:#e0deda;--text:#1a1a1a;
+  --muted:#888;--light:#bbb;--danger:#c0392b;--success:#27ae60;--warn:#d68910;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;font-size:13px;}
+.topbar{background:var(--white);border-bottom:.5px solid var(--border);padding:.75rem 1.25rem;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text);}
+.topbar-badge{margin-left:auto;background:var(--gold-l);color:var(--gold-d);font-size:10px;padding:3px 10px;border-radius:20px;border:.5px solid var(--gold-b);}
+.tabs{display:flex;background:var(--white);border-bottom:.5px solid var(--border);padding:0 1rem;overflow-x:auto;}
+.tab{font-size:12px;color:var(--muted);padding:9px 12px;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;font-family:inherit;white-space:nowrap;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:600;}
+.tab:hover{color:var(--gold);}
+.panel{display:none;padding:1rem;flex:1;flex-direction:column;gap:.85rem;}
+.panel.active{display:flex;}
+.card{background:var(--white);border:.5px solid var(--border);border-radius:10px;padding:.9rem 1.1rem;}
+.card-title{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:7px;}
+.card-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+.two-col{display:grid;grid-template-columns:1.1fr 0.9fr;gap:1rem;}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.r4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.full{margin-bottom:8px;}
+label{font-size:11px;color:#666;display:block;margin-bottom:3px;}
+input,select,textarea{width:100%;background:#fafaf8;border:.5px solid #dddbd5;border-radius:5px;color:var(--text);font-size:12px;padding:7px 9px;outline:none;font-family:inherit;}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);background:#fffdf7;}
+input::placeholder,textarea::placeholder{color:#bbb;}
+textarea{resize:vertical;line-height:1.5;}
+.hint{font-size:10px;color:var(--light);margin-top:3px;line-height:1.4;}
+.hint.warn{color:#c0392b;}
+.alerta{border-radius:5px;padding:7px 10px;font-size:11px;margin-top:6px;line-height:1.5;display:none;}
+.alerta.danger{background:#fdf0ef;color:var(--danger);border:.5px solid #f5c6c5;}
+.alerta.ok{background:#eafaf1;color:var(--success);border:.5px solid #c3dfc3;}
+.alerta.warn{background:#fef6e7;color:var(--warn);border:.5px solid #f9d98a;}
+.btn{border:none;border-radius:6px;font-size:12px;font-weight:600;padding:8px 14px;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.btn-gold{background:var(--gold);color:#fff;}.btn-gold:hover{background:var(--gold-d);}
+.btn-outline{background:transparent;color:var(--muted);border:.5px solid #dddbd5;}.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-success{background:var(--success);color:#fff;}.btn-success:hover{background:#219a52;}
+.btn-full{width:100%;}
+.upload-zone{border:1.5px dashed var(--gold-b);border-radius:10px;background:var(--gold-l);padding:1.2rem;text-align:center;cursor:pointer;transition:border-color .2s;position:relative;}
+.upload-zone:hover{border-color:var(--gold);}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-title{font-size:13px;font-weight:600;color:var(--gold-d);margin-bottom:3px;}
+.upload-sub{font-size:10px;color:var(--muted);}
+.upload-preview{margin-top:8px;display:none;text-align:left;}
+.upload-preview img{max-width:100%;max-height:160px;border-radius:5px;border:.5px solid var(--border);}
+.upload-name{font-size:11px;color:var(--gold-d);margin-top:5px;font-weight:500;}
+.tipo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px;}
+.tipo-btn{background:#fafaf8;border:.5px solid #dddbd5;border-radius:8px;padding:8px 5px;cursor:pointer;text-align:center;transition:all .15s;font-family:inherit;}
+.tipo-btn:hover,.tipo-btn.selected{border-color:var(--gold);background:var(--gold-l);}
+.tipo-btn .t-icon{font-size:16px;margin-bottom:2px;}
+.tipo-btn .t-name{font-size:10px;font-weight:600;color:#333;}
+.tipo-btn.selected .t-name{color:var(--gold-d);}
+.tipo-btn .t-obli{font-size:9px;color:var(--muted);margin-top:2px;line-height:1.3;}
+.info-box{background:var(--gold-l);border:.5px solid var(--gold-b);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:8px 12px;font-size:11px;color:#7a5d1e;line-height:1.6;}
+.info-box b{color:var(--gold-d);}
+.res-row{display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:.5px solid #f0eeea;font-size:12px;gap:8px;}
+.res-row:last-of-type{border-bottom:none;}
+.res-label{color:#666;flex:1;}
+.res-val{font-weight:600;color:var(--text);text-align:right;}
+.res-val.red{color:var(--danger);}
+.res-val.green{color:var(--success);}
+.res-val.gold{color:var(--gold-d);}
+.total-box{background:var(--gold-l);border:.5px solid var(--gold-b);border-radius:8px;padding:.75rem 1rem;margin-top:.5rem;}
+.total-label{font-size:10px;color:var(--gold-d);margin-bottom:3px;}
+.total-val{font-size:19px;font-weight:700;color:var(--gold-d);}
+.neto-box{background:#f0f8f0;border:.5px solid #c3dfc3;border-radius:8px;padding:.75rem 1rem;margin-top:6px;}
+.neto-label{font-size:10px;color:var(--success);margin-bottom:3px;}
+.neto-val{font-size:19px;font-weight:700;color:var(--success);}
+.empty-state{text-align:center;padding:1.5rem;color:#ccc;font-size:12px;line-height:1.6;}
+.ref-table{width:100%;border-collapse:collapse;font-size:11px;}
+.ref-table th{font-size:9px;color:var(--muted);font-weight:600;text-align:left;padding:5px 6px;border-bottom:.5px solid var(--border);text-transform:uppercase;letter-spacing:.3px;background:#fafaf8;}
+.ref-table td{padding:5px 6px;border-bottom:.5px solid #f4f4f2;color:#444;vertical-align:top;}
+.ref-table tr:last-child td{border-bottom:none;}
+.ref-table tr:hover td{background:#fdf9f2;}
+.bdg{display:inline-block;font-size:9px;padding:1px 6px;border-radius:20px;}
+.bdg.r{background:#fdf0ef;color:var(--danger);border:.5px solid #f5c6c5;}
+.bdg.g{background:#eafaf1;color:var(--success);border:.5px solid #c3dfc3;}
+.bdg.w{background:#fef6e7;color:var(--warn);border:.5px solid #f9d98a;}
+.comprobante{background:#fff;border:1px solid #333;border-radius:4px;padding:1.25rem;font-family:'Courier New',monospace;font-size:11px;line-height:1.8;display:none;}
+.comp-header{text-align:center;margin-bottom:1rem;border-bottom:2px solid #333;padding-bottom:.75rem;}
+.comp-title{font-size:14px;font-weight:700;letter-spacing:1px;}
+.comp-sub{font-size:10px;color:#555;}
+.comp-section{margin-bottom:.75rem;}
+.comp-section-title{font-weight:700;font-size:10px;border-bottom:1px solid #ccc;margin-bottom:.4rem;padding-bottom:2px;text-transform:uppercase;letter-spacing:.5px;}
+.comp-row{display:flex;justify-content:space-between;gap:1rem;}
+.comp-row span:first-child{color:#555;flex:1;font-size:10px;}
+.comp-row span:last-child{font-weight:600;text-align:right;min-width:90px;font-size:11px;}
+.comp-total-row{display:flex;justify-content:space-between;padding:3px 6px;background:#f0f0f0;border-radius:2px;margin-bottom:2px;font-size:11px;}
+.comp-neto{background:#1a1a1a;color:#fff;padding:6px 8px;border-radius:3px;display:flex;justify-content:space-between;margin-top:6px;font-weight:700;}
+.comp-footer{border-top:1px solid #ccc;margin-top:1rem;padding-top:.75rem;text-align:center;font-size:9px;color:#888;line-height:1.6;}
+.comp-firma{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;}
+.comp-firma-box{border-top:1px solid #333;padding-top:4px;text-align:center;font-size:10px;color:#555;}
+.btn-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.spinner-wrap{display:none;flex-direction:column;align-items:center;gap:8px;padding:1rem;color:var(--muted);font-size:12px;}
+.spinner{width:22px;height:22px;border:2px solid #e8d5a0;border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+/* SECCIÓN B */
+.secb-step{background:#fafaf8;border:.5px solid var(--border);border-radius:8px;padding:.85rem 1rem;margin-bottom:.75rem;}
+.secb-step-num{display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;font-weight:700;align-items:center;justify-content:center;margin-right:8px;flex-shrink:0;}
+.secb-step-title{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;margin-bottom:.6rem;}
+.venc-table{width:100%;border-collapse:collapse;font-size:11px;}
+.venc-table th{background:var(--gold);color:#fff;font-size:10px;padding:5px 8px;text-align:left;font-weight:600;}
+.venc-table td{padding:5px 8px;border-bottom:.5px solid #f0eeea;color:#444;}
+.venc-table tr:hover td{background:#fdf9f2;}
+.ret-lista-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:.5px solid #f0eeea;font-size:11px;}
+.ret-lista-item:last-child{border-bottom:none;}
+.norma-chip{display:inline-block;background:#f4f4f2;border:.5px solid var(--border);border-radius:4px;padding:2px 7px;font-size:9px;color:#666;margin-top:2px;}
+.status-bar{background:var(--gold);color:#fff;text-align:center;font-size:11px;font-weight:600;padding:5px;letter-spacing:.5px;flex-shrink:0;}
+@media(max-width:700px){
+  .two-col{grid-template-columns:1fr;}
+  .r2,.r3,.r4{grid-template-columns:1fr;}
+  .tipo-grid{grid-template-columns:repeat(2,1fr);}
+  .btn-actions{flex-direction:column;}
+}
 </style>
-
-<div class="page">
-  <div class="topbar">
-    <button class="back-btn" onclick="sendPrompt('Volver al dashboard principal de GestorPH')">← Volver</button>
-    <span class="topbar-sep">/</span>
-    <span class="topbar-title">Cálculo de Retenciones</span>
-    <span class="topbar-badge">Tarifas vigentes 2026 · UVT $52.374</span>
-  </div>
-
-  <div class="content">
-    <div class="left-col">
-      <div class="card">
-        <div class="card-title"><span class="card-title-dot"></span>Datos del pago</div>
-
-        <div class="uvt-banner">
-          <span>UVT 2026: <b>$52.374</b> · Resolución DIAN 000238/2025</span>
-          <span>Decreto 0572 de 2025 vigente</span>
-        </div>
-
-        <div class="form-full">
-          <label>Concepto del pago</label>
-          <select id="concepto" onchange="seleccionarConcepto()">
-            <option value="">— Seleccionar concepto —</option>
-            <optgroup label="Honorarios (sin cuantía mínima)">
-              <option value="hon_jur" data-rf="11" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="0" data-cuantia_txt="Sin mínimo">Honorarios — Persona jurídica (11%)</option>
-              <option value="hon_nat_dec" data-rf="10" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="0" data-cuantia_txt="Sin mínimo">Honorarios — Persona natural declarante (10%)</option>
-              <option value="hon_nat_nodec" data-rf="11" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="0" data-cuantia_txt="Sin mínimo">Honorarios — Persona natural no declarante (11%)</option>
-            </optgroup>
-            <optgroup label="Servicios — Cuantía mín. 4 UVT = $209.496">
-              <option value="serv_dec" data-rf="4" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Servicios generales — Declarante (4%)</option>
-              <option value="serv_nodec" data-rf="6" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Servicios generales — No declarante (6%)</option>
-              <option value="vigilancia" data-rf="2" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Vigilancia y seguridad (2%)</option>
-              <option value="aseo" data-rf="2" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Aseo y limpieza (2%)</option>
-              <option value="mantenimiento" data-rf="2" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Mantenimiento y reparaciones (2%)</option>
-              <option value="transporte_pas" data-rf="3.5" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="524000" data-cuantia_txt="Mín. 10 UVT = $524.000">Transporte de pasajeros (3.5%)</option>
-              <option value="transporte_carga" data-rf="1" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="209496" data-cuantia_txt="Mín. 4 UVT = $209.496">Transporte de carga terrestre (1%)</option>
-            </optgroup>
-            <optgroup label="Compras — Cuantía mín. 27 UVT = $1.414.098">
-              <option value="compras_dec" data-rf="2.5" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="1414098" data-cuantia_txt="Mín. 27 UVT = $1.414.098">Compras generales — Declarante (2.5%)</option>
-              <option value="compras_nodec" data-rf="3.5" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="1414098" data-cuantia_txt="Mín. 27 UVT = $1.414.098">Compras generales — No declarante (3.5%)</option>
-            </optgroup>
-            <optgroup label="Arrendamientos">
-              <option value="arrend_mueble" data-rf="4" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="0" data-cuantia_txt="Sin mínimo">Arrendamiento bienes muebles (4%)</option>
-              <option value="arrend_inmueble" data-rf="3.5" data-rica_min="4.14" data-rica_max="11.04" data-cuantia="0" data-cuantia_txt="Sin mínimo">Arrendamiento bienes inmuebles (3.5%)</option>
-            </optgroup>
-          </select>
-          <div class="tarifas-auto" id="tarifas-auto"></div>
-        </div>
-
-        <div class="form-row">
-          <div>
-            <label>Valor bruto del pago ($)</label>
-            <input type="number" id="valor" placeholder="0" min="0" oninput="verificarCuantia()" />
-            <div class="alerta-cuantia" id="alerta-cuantia"></div>
-          </div>
-          <div>
-            <label>¿Aplica IVA?</label>
-            <select id="aplica_iva">
-              <option value="no">No aplica</option>
-              <option value="si">Sí — 19%</option>
-            </select>
-            <div class="hint">Retefuente se calcula sobre valor sin IVA</div>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <div>
-            <label>% Retefuente (ajustable)</label>
-            <input type="number" id="pct_rf" placeholder="0" step="0.1" min="0" max="100" />
-          </div>
-          <div>
-            <label>% ReteICA Cali (ajustable)</label>
-            <input type="number" id="pct_rica" placeholder="0" step="0.001" min="0" max="100" />
-            <div class="hint">Cali retiene el 100% de la tarifa ICA</div>
-          </div>
-        </div>
-
-        <div class="form-full">
-          <label>Régimen tributario del proveedor</label>
-          <select id="regimen">
-            <option value="ordinario">Régimen ordinario</option>
-            <option value="simple">Régimen SIMPLE — No sujeto a Retefuente</option>
-            <option value="autorretenedor">Autorretenedor DIAN</option>
-          </select>
-        </div>
-
-        <button class="btn-calcular" onclick="calcular()">Calcular retenciones 2026</button>
-        <button class="btn-limpiar" onclick="limpiar()">Limpiar formulario</button>
-      </div>
-    </div>
-
-    <div class="right-col">
-      <div class="card">
-        <div class="card-title"><span class="card-title-dot"></span>Resultado del cálculo</div>
-        <div id="resultado-area">
-          <div class="empty-state">Selecciona el concepto, ingresa el valor<br>y presiona "Calcular retenciones 2026"</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title"><span class="card-title-dot"></span>Referencia normativa 2026</div>
-        <div class="ref-row"><span>Honorarios Pers. jurídica<span class="art">Art. 392 ET</span></span><b>RF 11% · Sin mínimo</b></div>
-        <div class="ref-row"><span>Honorarios Pers. natural dec.<span class="art">Art. 392 ET</span></span><b>RF 10% · Sin mínimo</b></div>
-        <div class="ref-row"><span>Servicios declarante<span class="art">Art. 392 ET</span></span><b>RF 4% · Mín $209.496</b></div>
-        <div class="ref-row"><span>Servicios no declarante</span><b>RF 6% · Mín $209.496</b></div>
-        <div class="ref-row"><span>Vigilancia / Aseo / Mant.</span><b>RF 2% · Mín $209.496</b></div>
-        <div class="ref-row"><span>Compras declarante</span><b>RF 2.5% · Mín $1.414.098</b></div>
-        <div class="ref-row"><span>Compras no declarante</span><b>RF 3.5% · Mín $1.414.098</b></div>
-        <div class="ref-row"><span>Transp. pasajeros</span><b>RF 3.5% · Mín $524.000</b></div>
-        <div class="ref-row"><span>ReteICA Cali<span class="art">Acuerdo Cali</span></span><b>100% tarifa ICA (varía x actividad)</b></div>
-        <div class="ref-row"><span>ReteIVA<span class="art">Art. 437-1 ET</span></span><b>15% del IVA facturado</b></div>
-        <div class="info-box">
-          Fuentes: Resolución DIAN 000238/2025 · Decreto 0572/2025 · Estatuto Tributario Arts. 367–419 · Acuerdo Municipal Cali. Consulte siempre con el contador la tarifa aplicable a cada caso.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="status-bar">GestorPH · Módulo Retenciones 2026 · UVT $52.374 · Res. DIAN 000238/2025 · Decreto 0572/2025</div>
+</head>
+<body>
+<div class="topbar">
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="14" height="14" rx="2" stroke="#C9A84C" stroke-width="1.2"/><line x1="5" y1="5" x2="11" y2="5" stroke="#C9A84C" stroke-width="1"/><line x1="5" y1="8" x2="9" y2="8" stroke="#C9A84C" stroke-width="1"/><line x1="5" y1="11" x2="11" y2="11" stroke="#C9A84C" stroke-width="1"/></svg>
+  <span class="topbar-title">Retenciones y Comprobante de Egreso</span>
+  <span class="topbar-badge">UVT 2026: $52.374 · Res.DIAN 000238/2025 · Decreto 0572/2025</span>
 </div>
 
+<div class="tabs">
+  <button class="tab active" onclick="showTab('entidad')">① Entidad</button>
+  <button class="tab" onclick="showTab('secA')">② Sección A — Terceros</button>
+  <button class="tab" onclick="showTab('secB')">③ Sección B — Form.350</button>
+  <button class="tab" onclick="showTab('tarifas')">📋 Tarifas 2026</button>
+</div>
+
+<!-- TAB 1 ENTIDAD -->
+<div class="panel active" id="tab-entidad">
+  <div class="card">
+    <div class="card-title"><span class="card-dot"></span>Tipo de entidad — define sus obligaciones tributarias (Ley 675/2001 · Art.19-5 E.T.)</div>
+    <div class="tipo-grid">
+      <button class="tipo-btn selected" onclick="selTipo(this,'residencial')">
+        <div class="t-icon">🏘</div><div class="t-name">Residencial</div>
+        <div class="t-obli">No contribuyente renta · No ICA · Agente ret. básico (Art.19-5 E.T.)</div>
+      </button>
+      <button class="tipo-btn" onclick="selTipo(this,'comercial')">
+        <div class="t-icon">🏢</div><div class="t-name">Comercial</div>
+        <div class="t-obli">Contribuyente renta · ICA · Agente ret. pleno · Autorretención</div>
+      </button>
+      <button class="tipo-btn" onclick="selTipo(this,'mixta')">
+        <div class="t-icon">🏗</div><div class="t-name">Mixta</div>
+        <div class="t-obli">Contribuyente parcial · ICA en act. ext. · Ret. plena</div>
+      </button>
+      <button class="tipo-btn" onclick="selTipo(this,'cc')">
+        <div class="t-icon">🛍</div><div class="t-name">Centro Comercial</div>
+        <div class="t-obli">Contribuyente pleno · ICA · IVA · Ret. plena</div>
+      </button>
+      <button class="tipo-btn" onclick="selTipo(this,'oficinas')">
+        <div class="t-icon">💼</div><div class="t-name">Oficinas / Empresarial</div>
+        <div class="t-obli">Contribuyente pleno · ICA · Ret. plena</div>
+      </button>
+      <button class="tipo-btn" onclick="selTipo(this,'empresa')">
+        <div class="t-icon">🏭</div><div class="t-name">Empresa</div>
+        <div class="t-obli">Contribuyente pleno · ICA · Renta · IVA · Autorretención</div>
+      </button>
+    </div>
+    <div class="info-box" id="info-tipo">
+      <b>Copropiedad Residencial:</b> Es <b>no contribuyente del impuesto sobre la renta</b> (Art. 19-5 E.T. + Art. 33 Ley 675/2001). No declara renta propia ni está sujeta a ICA. Sin embargo, <b>sí practica retenciones</b> a sus proveedores, contratistas y trabajadores independientes como agente retenedor, y las declara mensualmente en el Formulario 350.
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="card-dot"></span>Datos de la entidad pagadora</div>
+    <div class="r2">
+      <div><label>Nombre / Razón social</label><input type="text" id="ent-nombre" placeholder="Ej: Conjunto Residencial Los Álamos P.H."/></div>
+      <div><label>NIT / Documento</label><input type="text" id="ent-nit" placeholder="Ej: 900.123.456-1"/></div>
+    </div>
+    <div class="r2">
+      <div><label>Ciudad</label><input type="text" id="ent-ciudad" placeholder="Ej: Cali"/></div>
+      <div><label>Representante legal / Administrador</label><input type="text" id="ent-rep" placeholder="Nombre completo"/></div>
+    </div>
+    <button class="btn btn-gold btn-full" onclick="showTab('secA');activarTab(1)" style="margin-top:4px;">
+      Continuar → Sección A: Retenciones a Terceros ↗
+    </button>
+  </div>
+</div>
+
+<!-- TAB 2 SECCIÓN A -->
+<div class="panel" id="tab-secA">
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:.85rem;">
+
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Adjuntar documento soporte — la IA lee y extrae los datos</div>
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="file-input" accept="image/*,.pdf,.jpg,.jpeg,.png,.webp" onchange="handleFile(this)"/>
+          <div style="font-size:24px;margin-bottom:6px;">📎</div>
+          <div class="upload-title">Arrastra o haz clic para adjuntar</div>
+          <div class="upload-sub">Factura · Cuenta de cobro · Soporte · PDF · JPG · PNG · Escaneado</div>
+          <div class="upload-preview" id="upload-preview">
+            <img id="preview-img" src="" alt="" style="display:none;"/>
+            <div class="upload-name" id="preview-name"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn btn-gold" style="flex:1;" id="btn-leer-ia" onclick="leerDocumentoIA()" disabled>
+            🤖 Leer con IA y extraer datos
+          </button>
+          <button class="btn btn-outline" onclick="limpiarArchivo()">✕</button>
+        </div>
+        <div class="spinner-wrap" id="spinner-ia"><div class="spinner"></div><span>Analizando documento...</span></div>
+        <div class="alerta" id="alerta-ia"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Datos del beneficiario / proveedor</div>
+        <div class="r2">
+          <div><label>Nombre o razón social</label><input type="text" id="t-nombre" placeholder="Ej: Servicios Generales SAS"/></div>
+          <div><label>NIT / Cédula</label><input type="text" id="t-nit" placeholder="Ej: 1.234.567-8"/></div>
+        </div>
+        <div class="r2">
+          <div>
+            <label>Tipo de persona</label>
+            <select id="t-tipo" onchange="aplicarTarifas()">
+              <option value="">Seleccionar</option>
+              <option value="jur">Persona jurídica</option>
+              <option value="nat_dec">Persona natural — declarante de renta</option>
+              <option value="nat_nodec">Persona natural — no declarante de renta</option>
+            </select>
+          </div>
+          <div>
+            <label>Régimen tributario</label>
+            <select id="t-regimen">
+              <option value="ordinario">Régimen ordinario</option>
+              <option value="simple">Régimen SIMPLE (no sujeto Retefuente - Art.911 E.T.)</option>
+              <option value="autorreten">Autorretenedor DIAN</option>
+            </select>
+          </div>
+        </div>
+        <div class="full">
+          <label>Concepto del pago</label>
+          <select id="t-concepto" onchange="aplicarTarifas()">
+            <option value="">— Seleccionar concepto —</option>
+            <optgroup label="Honorarios y comisiones (sin cuantía mínima — desde $0)">
+              <option value="hon_jur"   data-rf-jur="11" data-rf-dec="11" data-rf-nodec="10" data-min="0"      data-min-txt="Sin mínimo — desde $0" data-art="Art.392 E.T.">Honorarios — Persona jurídica (11%)</option>
+              <option value="hon_ndec"  data-rf-jur="11" data-rf-dec="11" data-rf-nodec="10" data-min="0"      data-min-txt="Sin mínimo — desde $0" data-art="Art.392 E.T.">Honorarios — P.natural declarante (11%) / no declarante (10%)</option>
+              <option value="comision"  data-rf-jur="11" data-rf-dec="11" data-rf-nodec="10" data-min="0"      data-min-txt="Sin mínimo — desde $0" data-art="Art.392 E.T.">Comisiones</option>
+            </optgroup>
+            <optgroup label="Servicios — Cuantía mínima: 2 UVT = $104.748 (Decreto 0572/2025)">
+              <option value="serv_dec"  data-rf-jur="4"  data-rf-dec="4"  data-rf-nodec="6"  data-min="104748" data-min-txt="2 UVT = $104.748" data-art="Art.392 E.T.">Servicios generales — declarante (4%) / no declarante (6%)</option>
+              <option value="vigilancia" data-rf-jur="2" data-rf-dec="2"  data-rf-nodec="2"  data-min="104748" data-min-txt="2 UVT = $104.748" data-art="Art.392 E.T.">Vigilancia y seguridad privada (2%)</option>
+              <option value="aseo"      data-rf-jur="2"  data-rf-dec="2"  data-rf-nodec="2"  data-min="104748" data-min-txt="2 UVT = $104.748" data-art="Art.392 E.T.">Aseo y limpieza (2%)</option>
+              <option value="manto"     data-rf-jur="2"  data-rf-dec="2"  data-rf-nodec="2"  data-min="104748" data-min-txt="2 UVT = $104.748" data-art="Art.392 E.T.">Mantenimiento y reparaciones (2%)</option>
+              <option value="temporales" data-rf-jur="1" data-rf-dec="1"  data-rf-nodec="1"  data-min="104748" data-min-txt="2 UVT = $104.748" data-art="Art.392 E.T.">Servicios temporales empresas (1%)</option>
+              <option value="construccion" data-rf-jur="2" data-rf-dec="2" data-rf-nodec="2" data-min="0"     data-min-txt="Sin mínimo — desde $0" data-art="Art.401-1 E.T.">Contratos de construcción (2%)</option>
+              <option value="carga"     data-rf-jur="1"  data-rf-dec="1"  data-rf-nodec="1"  data-min="209496" data-min-txt="4 UVT = $209.496" data-art="Art.392-1 E.T.">Transporte de carga terrestre (1%)</option>
+              <option value="pasajeros" data-rf-jur="3.5" data-rf-dec="3.5" data-rf-nodec="3.5" data-min="523740" data-min-txt="10 UVT = $523.740" data-art="Art.392-1 E.T.">Transporte de pasajeros (3.5%)</option>
+            </optgroup>
+            <optgroup label="Compras — Cuantía mínima: 10 UVT = $523.740 (Decreto 0572/2025)">
+              <option value="compras"   data-rf-jur="2.5" data-rf-dec="2.5" data-rf-nodec="3.5" data-min="523740" data-min-txt="10 UVT = $523.740" data-art="Art.401 E.T.">Compras generales bienes muebles — declarante (2.5%) / no declarante (3.5%)</option>
+              <option value="bienes_raiz" data-rf-jur="2.5" data-rf-dec="2.5" data-rf-nodec="2.5" data-min="0" data-min-txt="Sin mínimo — desde $0" data-art="Art.401 E.T.">Compras bienes raíces (2.5% / 1% primeras 10.000 UVT vivienda)</option>
+              <option value="tarjeta"   data-rf-jur="1.5" data-rf-dec="1.5" data-rf-nodec="1.5" data-min="0"   data-min-txt="Sin mínimo — retención automática banco" data-art="Art.401-1 E.T.">Compras con tarjeta débito/crédito (1.5% — banco retiene)</option>
+              <option value="agropec"   data-rf-jur="1.5" data-rf-dec="1.5" data-rf-nodec="1.5" data-min="3666180" data-min-txt="70 UVT = $3.666.180" data-art="Art.401 E.T.">Productos agropecuarios sin proceso industrial (1.5%)</option>
+            </optgroup>
+            <optgroup label="Arrendamientos">
+              <option value="arrend_inm" data-rf-jur="3.5" data-rf-dec="3.5" data-rf-nodec="3.5" data-min="523740" data-min-txt="10 UVT = $523.740" data-art="Art.401 E.T.">Arrendamiento bienes inmuebles (3.5%)</option>
+              <option value="arrend_mue" data-rf-jur="4"   data-rf-dec="4"   data-rf-nodec="4"   data-min="0"      data-min-txt="Sin mínimo — desde $0" data-art="Art.401 E.T.">Arrendamiento bienes muebles (4%)</option>
+            </optgroup>
+            <optgroup label="Financieros / Otros">
+              <option value="intereses"  data-rf-jur="7"   data-rf-dec="7"   data-rf-nodec="7"   data-min="0"      data-min-txt="Sin mínimo — desde $0" data-art="Art.395 E.T.">Intereses y rendimientos financieros (7%)</option>
+              <option value="dividendos" data-rf-jur="10"  data-rf-dec="10"  data-rf-nodec="10"  data-min="0"      data-min-txt="Sin mínimo" data-art="Art.245 E.T.">Dividendos y participaciones (10%)</option>
+              <option value="exterior"   data-rf-jur="20"  data-rf-dec="20"  data-rf-nodec="20"  data-min="0"      data-min-txt="Sin mínimo" data-art="Art.406 E.T.">Pagos al exterior (20%)</option>
+              <option value="emolumentos" data-rf-jur="4" data-rf-dec="4"   data-rf-nodec="3.5" data-min="523740"  data-min-txt="10 UVT = $523.740" data-art="Art.401 E.T.">Emolumentos eclesiásticos (4% / 3.5%)</option>
+              <option value="loteria"    data-rf-jur="20"  data-rf-dec="20"  data-rf-nodec="20"  data-min="0"      data-min-txt="Sin mínimo" data-art="Art.402 E.T.">Loterías, rifas, apuestas (20%)</option>
+            </optgroup>
+          </select>
+          <div class="hint" id="hint-concepto"></div>
+          <div class="norma-chip" id="norma-chip" style="display:none;"></div>
+        </div>
+        <div class="r3">
+          <div>
+            <label>Valor bruto del pago ($)</label>
+            <input type="number" id="t-valor" placeholder="0" min="0" oninput="verificarCuantia()"/>
+            <div class="hint" id="hint-cuantia"></div>
+          </div>
+          <div><label>% Retefuente (ajustable)</label><input type="number" id="t-rf" placeholder="0" step="0.1"/></div>
+          <div><label>% ReteICA (tarifa municipal ‰)</label><input type="number" id="t-rica" placeholder="0" step="0.001"/><div class="hint">Tarifa ICA según municipio · Cali: 4.14‰–11.04‰</div></div>
+        </div>
+        <div class="r2">
+          <div><label>¿Aplica IVA en esta operación?</label><select id="t-iva"><option value="no">No aplica IVA</option><option value="si">Sí — IVA 19% + ReteIVA 15% del IVA (Art.437-1)</option></select></div>
+          <div><label>Fecha del pago</label><input type="date" id="t-fecha"/></div>
+        </div>
+        <div class="r2">
+          <div><label>N° Factura / Cuenta de cobro / Soporte</label><input type="text" id="t-factura" placeholder="Ej: FE-2026-001234"/></div>
+          <div><label>Forma de pago</label>
+            <select id="t-forma">
+              <option>Transferencia bancaria</option><option>Cheque</option>
+              <option>Consignación</option><option>Efectivo</option><option>Otro</option>
+            </select>
+          </div>
+        </div>
+        <div class="full"><label>Descripción del bien o servicio</label><textarea id="t-desc" rows="2" placeholder="Describe brevemente el bien o servicio pagado..."></textarea></div>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <button class="btn btn-gold" style="flex:1;" onclick="calcularA()">⚡ Calcular y generar comprobante</button>
+          <button class="btn btn-outline" onclick="limpiarA()">Limpiar</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:.85rem;">
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Resultado de retenciones</div>
+        <div id="res-A"><div class="empty-state">Completa los datos y presiona<br>"Calcular y generar comprobante"</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Comprobante de egreso</div>
+        <div id="comp-A-wrap"><div class="empty-state">El comprobante aparecerá aquí<br>después de calcular las retenciones</div></div>
+        <div class="btn-actions" id="btn-actions-A" style="display:none;">
+          <button class="btn btn-gold" onclick="imprimirComp('A')">🖨 Imprimir</button>
+          <button class="btn btn-success" onclick="descargarPDF('A')">⬇ PDF</button>
+          <button class="btn btn-outline" onclick="copiarTexto('A')">📋 Copiar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3 SECCIÓN B -->
+<div class="panel" id="tab-secB">
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:.75rem;">
+
+      <!-- PASO 1 -->
+      <div class="secb-step">
+        <div class="secb-step-title"><span class="secb-step-num">1</span>¿Qué es el Formulario 350?</div>
+        <div class="info-box" style="margin-bottom:8px;">
+          El <b>Formulario 350</b> es la <b>declaración mensual de retención en la fuente</b>. Todo agente retenedor — incluyendo copropiedades residenciales — debe presentarlo cada mes, aunque no haya practicado ninguna retención. <b>No presentarlo genera sanción</b> aunque el valor sea cero (Art. 641 E.T.).
+        </div>
+        <div style="font-size:11px;color:#555;line-height:1.7;">
+          📌 <b>¿Qué se declara aquí?</b> Todas las retenciones que la entidad practicó a terceros durante el mes (proveedores, contratistas, arrendadores, etc.) más las autorretenciones propias si aplican.<br/>
+          📌 <b>Forma de pago:</b> La declaración y el pago van juntos. Una declaración sin pago es <b>ineficaz</b> (Art. 580-1 E.T.).<br/>
+          📌 <b>Sanción mínima 2026:</b> $523.740 (10 UVT · Art. 639 E.T.)<br/>
+          📌 <b>Sanción extemporaneidad:</b> 5% por mes o fracción (Art. 641 E.T.)
+        </div>
+      </div>
+
+      <!-- PASO 2 -->
+      <div class="secb-step">
+        <div class="secb-step-title"><span class="secb-step-num">2</span>Período y vencimiento de su declaración</div>
+        <div class="r2" style="margin-bottom:8px;">
+          <div>
+            <label>Mes de declaración (período retenido)</label>
+            <select id="b-mes" onchange="calcVencimiento()">
+              <option value="1">Enero 2026</option><option value="2">Febrero 2026</option>
+              <option value="3">Marzo 2026</option><option value="4">Abril 2026</option>
+              <option value="5">Mayo 2026</option><option value="6">Junio 2026</option>
+              <option value="7">Julio 2026</option><option value="8">Agosto 2026</option>
+              <option value="9">Septiembre 2026</option><option value="10">Octubre 2026</option>
+              <option value="11">Noviembre 2026</option><option value="12">Diciembre 2026</option>
+            </select>
+          </div>
+          <div>
+            <label>Último dígito del NIT (sin dígito de verificación)</label>
+            <select id="b-digito" onchange="calcVencimiento()">
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+              <option value="0">0</option>
+            </select>
+          </div>
+        </div>
+        <div id="venc-box" style="background:var(--gold-l);border:.5px solid var(--gold-b);border-radius:6px;padding:8px 12px;font-size:11px;color:#7a5d1e;line-height:1.7;">
+          <b>Recuerde:</b> Las retenciones del mes se declaran y pagan entre el 8 y el 22 del mes siguiente, según el último dígito del NIT (Decreto 2229/2023). Selecciona tu dígito para ver la indicación exacta.
+        </div>
+      </div>
+
+      <!-- PASO 3 -->
+      <div class="secb-step">
+        <div class="secb-step-title"><span class="secb-step-num">3</span>Registrar retenciones practicadas en el período</div>
+        <div id="lista-ret-B" style="min-height:40px;margin-bottom:8px;">
+          <div style="text-align:center;color:#ccc;font-size:11px;padding:.5rem;">Aún no hay retenciones registradas para este período</div>
+        </div>
+        <div class="r4" style="margin-bottom:6px;">
+          <div><label>Concepto</label>
+            <select id="b-concepto-sel">
+              <option>Honorarios</option><option>Servicios generales</option><option>Vigilancia</option>
+              <option>Aseo y limpieza</option><option>Mantenimiento</option><option>Compras</option>
+              <option>Arrendamientos</option><option>Transporte</option><option>Rendimientos fin.</option><option>Otros</option>
+            </select>
+          </div>
+          <div><label>Tarifa (%)</label><input type="number" id="b-tarifa" placeholder="Ej: 4" step="0.1" min="0"/></div>
+          <div><label>Base gravable ($)</label><input type="number" id="b-base" placeholder="0" min="0"/></div>
+          <div><label>Retención ($)</label><input type="number" id="b-ret" placeholder="0" min="0"/></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" style="flex:1;" onclick="autoCalcRet()">Calcular retención automáticamente</button>
+          <button class="btn btn-gold" style="flex:1;" onclick="agregarRetB()">+ Agregar</button>
+        </div>
+        <div class="hint">La retención = Base gravable × Tarifa. Puedes calcularla automáticamente o ingresar el valor ya calculado.</div>
+      </div>
+
+      <!-- PASO 4 — AUTORRETENCIONES -->
+      <div class="secb-step" id="step-autorreten" style="display:none;">
+        <div class="secb-step-title"><span class="secb-step-num">4</span>Autorretenciones (aplica para entidades contribuyentes)</div>
+        <div class="info-box" style="margin-bottom:8px;font-size:10px;">
+          Las entidades <b>comerciales, mixtas, centros comerciales y empresas</b> pueden estar obligadas a practicarse retención a sí mismas (autorretención) según el Decreto 0572/2025. No aplica para copropiedades residenciales.
+        </div>
+        <div class="r3">
+          <div><label>Actividad / Concepto</label><input type="text" id="b-auto-concepto" placeholder="Ej: Servicios comerciales"/></div>
+          <div><label>Base autorretención ($)</label><input type="number" id="b-auto-base" placeholder="0" oninput="calcAutoRet()"/></div>
+          <div><label>Tarifa autorretención (%)</label><input type="number" id="b-auto-tasa" placeholder="Ej: 0.8" step="0.1" oninput="calcAutoRet()"/>
+            <div class="hint">Tabla Decreto 0572/2025 según actividad CIIU</div>
+          </div>
+        </div>
+        <div id="autorret-res" style="display:none;background:#f4f4f2;border-radius:5px;padding:6px 10px;font-size:11px;color:#555;margin-top:4px;"></div>
+      </div>
+
+      <button class="btn btn-gold btn-full" onclick="generarResumenB()">📊 Generar resumen para Formulario 350</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:.75rem;">
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Resumen Formulario 350 — lo que debe declarar</div>
+        <div id="res-B"><div class="empty-state">Agrega las retenciones del período<br>y presiona "Generar resumen"</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Alertas y obligaciones legales</div>
+        <div id="alertas-B">
+          <div class="alerta warn" style="display:block;">
+            ⚠ <b>Obligación aun sin retenciones:</b> Si en el mes no practicó ninguna retención, debe presentar el Formulario 350 con valor cero. No hacerlo genera sanción (Art. 641 E.T.).
+          </div>
+          <div class="alerta warn" style="display:block;margin-top:6px;">
+            ⚠ <b>Declaración ineficaz sin pago:</b> La declaración presentada sin pago total es ineficaz para la DIAN (Art. 580-1 E.T.). Siempre pague junto con la presentación.
+          </div>
+        </div>
+      </div>
+      <div class="btn-actions" id="btn-actions-B" style="display:none;">
+        <button class="btn btn-gold" onclick="imprimirComp('B')">🖨 Imprimir resumen</button>
+        <button class="btn btn-success" onclick="descargarPDF('B')">⬇ Descargar PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 4 TARIFAS -->
+<div class="panel" id="tab-tarifas">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div style="display:flex;flex-direction:column;gap:.85rem;">
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Tabla Retefuente 2026 — UVT $52.374 · Decreto 0572/2025</div>
+        <table class="ref-table">
+          <thead><tr><th>Concepto</th><th>Cuantía mín.</th><th>Declarante</th><th>No declarante</th><th>Norma</th></tr></thead>
+          <tbody>
+            <tr><td><b>Honorarios P. jurídica</b></td><td>Sin mínimo</td><td><span class="bdg r">11%</span></td><td><span class="bdg r">11%</span></td><td>Art.392 E.T.</td></tr>
+            <tr><td><b>Honorarios P. natural declarante</b></td><td>Sin mínimo</td><td><span class="bdg r">11%</span></td><td>—</td><td>Art.392 E.T.</td></tr>
+            <tr><td><b>Honorarios P. natural no declarante</b></td><td>Sin mínimo</td><td>—</td><td><span class="bdg r">10%</span></td><td>Art.392 E.T.</td></tr>
+            <tr><td><b>Comisiones</b></td><td>Sin mínimo</td><td><span class="bdg r">11%</span></td><td><span class="bdg r">10%</span></td><td>Art.392 E.T.</td></tr>
+            <tr style="background:#fef9f0;"><td><b>Servicios generales ★</b></td><td><span class="bdg w">2 UVT = $104.748</span></td><td><span class="bdg w">4%</span></td><td><span class="bdg r">6%</span></td><td>Art.392 E.T.</td></tr>
+            <tr><td>Vigilancia y seguridad</td><td><span class="bdg w">2 UVT = $104.748</span></td><td><span class="bdg g">2%</span></td><td><span class="bdg g">2%</span></td><td>Art.392 E.T.</td></tr>
+            <tr><td>Aseo y limpieza</td><td><span class="bdg w">2 UVT = $104.748</span></td><td><span class="bdg g">2%</span></td><td><span class="bdg g">2%</span></td><td>Art.392 E.T.</td></tr>
+            <tr><td>Mantenimiento y reparaciones</td><td><span class="bdg w">2 UVT = $104.748</span></td><td><span class="bdg g">2%</span></td><td><span class="bdg g">2%</span></td><td>Art.392 E.T.</td></tr>
+            <tr><td>Servicios temporales (empresa)</td><td><span class="bdg w">2 UVT = $104.748</span></td><td><span class="bdg g">1%</span></td><td><span class="bdg g">1%</span></td><td>Art.392 E.T.</td></tr>
+            <tr><td>Contratos de construcción</td><td>Sin mínimo</td><td><span class="bdg g">2%</span></td><td><span class="bdg g">2%</span></td><td>Art.401-1 E.T.</td></tr>
+            <tr><td>Transporte de carga</td><td><span class="bdg w">4 UVT = $209.496</span></td><td><span class="bdg g">1%</span></td><td><span class="bdg g">1%</span></td><td>Art.392-1 E.T.</td></tr>
+            <tr><td>Transporte de pasajeros</td><td><span class="bdg w">10 UVT = $523.740</span></td><td><span class="bdg g">3.5%</span></td><td><span class="bdg g">3.5%</span></td><td>Art.392-1 E.T.</td></tr>
+            <tr style="background:#fef9f0;"><td><b>Compras bienes muebles ★</b></td><td><span class="bdg w">10 UVT = $523.740</span></td><td><span class="bdg g">2.5%</span></td><td><span class="bdg w">3.5%</span></td><td>Art.401 E.T.</td></tr>
+            <tr><td>Compras con tarjeta</td><td>Sin mínimo</td><td><span class="bdg g">1.5%</span></td><td><span class="bdg g">1.5%</span></td><td>Art.401-1 E.T.</td></tr>
+            <tr><td>Compras bienes raíces</td><td>Sin mínimo</td><td><span class="bdg g">2.5%</span></td><td><span class="bdg g">2.5%</span></td><td>Art.401 E.T.</td></tr>
+            <tr><td>Arrend. bienes inmuebles</td><td><span class="bdg w">10 UVT = $523.740</span></td><td><span class="bdg w">3.5%</span></td><td><span class="bdg w">3.5%</span></td><td>Art.401 E.T.</td></tr>
+            <tr><td>Arrend. bienes muebles</td><td>Sin mínimo</td><td><span class="bdg w">4%</span></td><td><span class="bdg w">4%</span></td><td>Art.401 E.T.</td></tr>
+            <tr><td>Rendimientos financieros</td><td>Sin mínimo</td><td><span class="bdg r">7%</span></td><td><span class="bdg r">7%</span></td><td>Art.395 E.T.</td></tr>
+            <tr><td>Emolumentos eclesiásticos</td><td><span class="bdg w">10 UVT = $523.740</span></td><td><span class="bdg w">4%</span></td><td><span class="bdg g">3.5%</span></td><td>Art.401 E.T.</td></tr>
+            <tr><td>Pagos al exterior</td><td>Sin mínimo</td><td><span class="bdg r">20%</span></td><td><span class="bdg r">20%</span></td><td>Art.406 E.T.</td></tr>
+            <tr><td>Loterías, rifas, apuestas</td><td>Sin mínimo</td><td><span class="bdg r">20%</span></td><td><span class="bdg r">20%</span></td><td>Art.402 E.T.</td></tr>
+          </tbody>
+        </table>
+        <div style="font-size:10px;color:#aaa;margin-top:6px;">★ Cuantías actualizadas por Decreto 0572 del 28 may 2025, vigentes desde 1 jun 2025.</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.85rem;">
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>ReteIVA · ReteICA 2026</div>
+        <table class="ref-table">
+          <thead><tr><th>Impuesto</th><th>Tarifa</th><th>Base</th><th>Cuándo aplica</th><th>Norma</th></tr></thead>
+          <tbody>
+            <tr><td><b>IVA</b></td><td><span class="bdg w">19%</span></td><td>Sobre valor sin IVA</td><td>Operaciones gravadas</td><td>Art.468 E.T.</td></tr>
+            <tr><td><b>ReteIVA</b></td><td><span class="bdg r">15% del IVA</span></td><td>Sobre el IVA facturado</td><td>Cuando el pagador es gran contribuyente o responsable IVA</td><td>Art.437-1 E.T.</td></tr>
+            <tr><td><b>ReteICA Cali</b></td><td><span class="bdg w">100% tarifa ICA</span></td><td>Sobre base gravable</td><td>Entidades comerciales/mixtas que pagan servicios en Cali</td><td>Acuerdo Municipal</td></tr>
+            <tr><td>ICA servicios Cali</td><td><span class="bdg g">4.14‰ – 11.04‰</span></td><td>Según actividad CIIU</td><td>Actividades comerciales/servicios</td><td>Acuerdo Cali</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Normativa y referencias clave 2026</div>
+        <div style="font-size:11px;color:#555;line-height:1.9;">
+          <div>📌 <b>UVT 2026:</b> $52.374 · Resolución DIAN 000238 / 15-dic-2025</div>
+          <div>📌 <b>Decreto 0572/2025:</b> Vigente desde 1 jun 2025 · Reduce cuantías mínimas</div>
+          <div>📌 <b>Servicios — cuantía mín.:</b> 2 UVT = $104.748</div>
+          <div>📌 <b>Compras — cuantía mín.:</b> 10 UVT = $523.740 (antes 27 UVT)</div>
+          <div>📌 <b>Régimen SIMPLE:</b> No sujeto Retefuente · Art. 911 E.T.</div>
+          <div>📌 <b>PH Residencial:</b> No contribuyente renta · Art. 19-5 E.T. + Art. 33 Ley 675/2001</div>
+          <div>📌 <b>PH Comercial/Mixta:</b> Contribuyente declarante · Art. 19-5 E.T.</div>
+          <div>📌 <b>Form. 350:</b> Declaración mensual obligatoria aunque valor sea $0</div>
+          <div>📌 <b>Vencimientos Form. 350:</b> Entre día 8 y 22 del mes siguiente · Decreto 2229/2023</div>
+          <div>📌 <b>Sin pago = ineficaz:</b> Art. 580-1 E.T.</div>
+          <div>📌 <b>Sanción extemporaneidad:</b> 5% por mes o fracción · Art. 641 E.T.</div>
+          <div>📌 <b>Sanción mínima 2026:</b> $523.740 (10 UVT) · Art. 639 E.T.</div>
+          <div>📌 <b>Cert. de retención:</b> Expedir antes del último día hábil de marzo · Art. 1.6.1.13.2.40 DUR 1625/2016</div>
+          <div>📌 <b>Retefuente sobre base SIN IVA</b> — nunca sobre valor total con IVA</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Vencimientos Form. 350 por dígito NIT (Decreto 2229/2023)</div>
+        <table class="venc-table">
+          <thead><tr><th>Último dígito NIT</th><th>Días hábiles mes siguiente</th><th>Aprox. 2026</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>8° día hábil</td><td>~8-10 del mes siguiente</td></tr>
+            <tr><td>2</td><td>9° día hábil</td><td>~9-11 del mes siguiente</td></tr>
+            <tr><td>3</td><td>10° día hábil</td><td>~10-12 del mes siguiente</td></tr>
+            <tr><td>4</td><td>11° día hábil</td><td>~11-13 del mes siguiente</td></tr>
+            <tr><td>5</td><td>12° día hábil</td><td>~12-14 del mes siguiente</td></tr>
+            <tr><td>6</td><td>13° día hábil</td><td>~13-15 del mes siguiente</td></tr>
+            <tr><td>7</td><td>14° día hábil</td><td>~16-18 del mes siguiente</td></tr>
+            <tr><td>8</td><td>15° día hábil</td><td>~17-19 del mes siguiente</td></tr>
+            <tr><td>9</td><td>16° día hábil</td><td>~20-22 del mes siguiente</td></tr>
+            <tr><td>0</td><td>17° día hábil</td><td>~21-23 del mes siguiente</td></tr>
+          </tbody>
+        </table>
+        <div style="font-size:10px;color:#aaa;margin-top:5px;">Consulte fechas exactas en el portal DIAN (www.dian.gov.co). Cuando el vencimiento cae en festivo, se traslada al siguiente día hábil.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="status-bar">GestorPH · Retenciones 2026 · UVT $52.374 · Decreto 0572/2025 · Ley 675/2001 · Formulario 350 · Arts.367–419 E.T.</div>
+<iframe id="iframe-print" style="display:none;"></iframe>
+
 <script>
-var conceptoData = {};
+var tipoEntidad='residencial';
+var retBList=[];
+var compATexto='';
+var compBTexto='';
+var archivoB64=null;
+var archivoTipo=null;
 
-function fmt(n) { return '$' + Math.round(n).toLocaleString('es-CO'); }
+var infoTipos={
+  residencial:'<b>Copropiedad Residencial:</b> Es <b>no contribuyente del impuesto sobre la renta</b> (Art. 19-5 E.T. + Art. 33 Ley 675/2001). No declara renta propia ni está sujeta a ICA. Sin embargo, <b>sí practica retenciones</b> a sus proveedores, contratistas y trabajadores independientes como agente retenedor, y las declara mensualmente en el Formulario 350.',
+  comercial:'<b>Copropiedad Comercial:</b> Es <b>contribuyente declarante del impuesto sobre la renta</b> (Art. 19-5 E.T.). Debe declarar renta anualmente, pagar ICA por sus actividades, practicar retenciones plenas a todos sus proveedores y está sujeta a autorretención según el Decreto 0572/2025.',
+  mixta:'<b>Copropiedad Mixta:</b> Es <b>contribuyente parcial</b>. Las actividades propias de administración de bienes comunes están exentas, pero cualquier actividad que genere renta externa (parqueaderos comerciales, arrendamiento de zonas comunes, etc.) la convierte en contribuyente de ICA y renta por esa porción. Practica retenciones plenas.',
+  cc:'<b>Centro Comercial:</b> Es <b>contribuyente pleno</b> de renta, ICA y todos los impuestos. Practica retenciones plenas a proveedores, locatarios y contratistas. Declara renta anualmente y retenciones mensualmente (Form. 350). Sujeto a ReteICA y ReteIVA en todos sus pagos.',
+  oficinas:'<b>Edificio de Oficinas:</b> Es <b>contribuyente pleno</b> de renta e ICA. Practica retenciones plenas a todos sus proveedores y contratistas. Si arrienda oficinas, esos ingresos generan IVA y renta.',
+  empresa:'<b>Empresa / Industrial:</b> Es <b>contribuyente pleno</b> de renta, IVA, ICA y todos los impuestos aplicables. Practica retenciones plenas. Sujeta a autorretención (Decreto 0572/2025). Presenta Formulario 350 mensualmente.'
+};
 
-function seleccionarConcepto() {
-  var sel = document.getElementById('concepto');
-  var opt = sel.options[sel.selectedIndex];
-  if (!opt || !opt.dataset.rf) { document.getElementById('tarifas-auto').style.display = 'none'; return; }
-  conceptoData = { rf: parseFloat(opt.dataset.rf), rica_min: parseFloat(opt.dataset.rica_min), rica_max: parseFloat(opt.dataset.rica_max), cuantia: parseFloat(opt.dataset.cuantia), cuantia_txt: opt.dataset.cuantia_txt };
-  document.getElementById('pct_rf').value = conceptoData.rf;
-  document.getElementById('pct_rica').value = conceptoData.rica_min;
-  var box = document.getElementById('tarifas-auto');
-  box.innerHTML = 'Retefuente sugerida: <b>' + conceptoData.rf + '%</b> · ReteICA Cali referencia: <b>' + conceptoData.rica_min + '‰ – ' + conceptoData.rica_max + '‰</b> · Cuantía mínima: <b>' + (conceptoData.cuantia === 0 ? 'Sin mínimo' : fmt(conceptoData.cuantia)) + '</b>';
-  box.style.display = 'block';
+function selTipo(el,tipo){
+  document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected'); tipoEntidad=tipo;
+  document.getElementById('info-tipo').innerHTML=infoTipos[tipo];
+  var stepAR=document.getElementById('step-autorreten');
+  stepAR.style.display=(tipo!=='residencial')?'block':'none';
+}
+function showTab(tab){
+  var tabs=['entidad','secA','secB','tarifas'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',tabs[i]===tab));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+}
+function activarTab(i){
+  document.querySelectorAll('.tab').forEach((t,j)=>{t.classList.toggle('active',j===i);});
+}
+function handleFile(input){
+  var file=input.files[0]; if(!file)return;
+  archivoTipo=file.type;
+  var preview=document.getElementById('upload-preview');
+  var img=document.getElementById('preview-img');
+  document.getElementById('preview-name').textContent='📎 '+file.name+' ('+(file.size/1024).toFixed(1)+' KB)';
+  preview.style.display='block';
+  var reader=new FileReader();
+  reader.onload=function(e){
+    archivoB64=e.target.result.split(',')[1];
+    if(file.type.startsWith('image/')){img.src=e.target.result;img.style.display='block';}
+    else{img.style.display='none';}
+  };
+  reader.readAsDataURL(file);
+  document.getElementById('btn-leer-ia').disabled=false;
+  document.getElementById('upload-zone').style.borderColor='#C9A84C';
+}
+function limpiarArchivo(){
+  archivoB64=null;archivoTipo=null;
+  document.getElementById('file-input').value='';
+  document.getElementById('upload-preview').style.display='none';
+  document.getElementById('preview-img').src='';
+  document.getElementById('preview-name').textContent='';
+  document.getElementById('btn-leer-ia').disabled=true;
+  document.getElementById('upload-zone').style.borderColor='';
+  var al=document.getElementById('alerta-ia');al.style.display='none';al.className='alerta';
+}
+async function leerDocumentoIA(){
+  if(!archivoB64)return;
+  var spinner=document.getElementById('spinner-ia');
+  var al=document.getElementById('alerta-ia');
+  var btn=document.getElementById('btn-leer-ia');
+  spinner.style.display='flex';al.style.display='none';btn.disabled=true;
+  var esImg=archivoTipo&&archivoTipo.startsWith('image/');
+  var mType=esImg?archivoTipo:'application/pdf';
+  var content=esImg?[
+    {type:'image',source:{type:'base64',media_type:mType,data:archivoB64}},
+    {type:'text',text:'Analiza este documento contable (factura, cuenta de cobro o soporte de pago). Extrae y devuelve SOLO JSON sin texto extra: {"nombre_proveedor":"","nit_proveedor":"","valor_bruto":0,"concepto":"","numero_factura":"","descripcion":"","aplica_iva":"no","tipo_persona":"jur"}. Si no lees un campo, déjalo vacío o 0.'}
+  ]:[
+    {type:'document',source:{type:'base64',media_type:'application/pdf',data:archivoB64}},
+    {type:'text',text:'Analiza este documento contable (factura, cuenta de cobro o soporte de pago). Extrae y devuelve SOLO JSON sin texto extra: {"nombre_proveedor":"","nit_proveedor":"","valor_bruto":0,"concepto":"","numero_factura":"","descripcion":"","aplica_iva":"no","tipo_persona":"jur"}. Si no lees un campo, déjalo vacío o 0.'}
+  ];
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content}]})});
+    var data=await res.json();
+    var txt=(data.content&&data.content[0])?data.content[0].text:'';
+    txt=txt.replace(/```json|```/g,'').trim();
+    var obj=JSON.parse(txt);
+    if(obj.nombre_proveedor)document.getElementById('t-nombre').value=obj.nombre_proveedor;
+    if(obj.nit_proveedor)document.getElementById('t-nit').value=obj.nit_proveedor;
+    if(obj.valor_bruto&&obj.valor_bruto>0)document.getElementById('t-valor').value=obj.valor_bruto;
+    if(obj.numero_factura)document.getElementById('t-factura').value=obj.numero_factura;
+    if(obj.descripcion)document.getElementById('t-desc').value=obj.descripcion;
+    if(obj.aplica_iva)document.getElementById('t-iva').value=obj.aplica_iva==='si'?'si':'no';
+    if(obj.tipo_persona)document.getElementById('t-tipo').value=obj.tipo_persona;
+    aplicarTarifas();verificarCuantia();
+    al.textContent='✓ Datos extraídos correctamente. Revisa y ajusta si es necesario antes de calcular.';
+    al.className='alerta ok';al.style.display='block';
+  }catch(e){
+    al.textContent='No fue posible leer el documento automáticamente. Por favor ingresa los datos manualmente.';
+    al.className='alerta warn';al.style.display='block';
+  }
+  spinner.style.display='none';btn.disabled=false;
+}
+function aplicarTarifas(){
+  var sel=document.getElementById('t-concepto');
+  var opt=sel.options[sel.selectedIndex];
+  var tipo=document.getElementById('t-tipo').value;
+  var chip=document.getElementById('norma-chip');
+  if(!opt||!opt.dataset.rfJur){document.getElementById('hint-concepto').textContent='';chip.style.display='none';return;}
+  var rf=0;
+  if(tipo==='jur')rf=parseFloat(opt.dataset.rfJur)||0;
+  else if(tipo==='nat_dec')rf=parseFloat(opt.dataset.rfDec)||0;
+  else rf=parseFloat(opt.dataset.rfNodec)||0;
+  document.getElementById('t-rf').value=rf;
+  var minTxt=opt.dataset.minTxt||'Sin mínimo';
+  document.getElementById('hint-concepto').textContent='Tarifa sugerida: '+rf+'% · '+minTxt;
+  chip.textContent=opt.dataset.art||'';chip.style.display=opt.dataset.art?'inline-block':'none';
   verificarCuantia();
 }
+function verificarCuantia(){
+  var val=parseFloat(document.getElementById('t-valor').value)||0;
+  var sel=document.getElementById('t-concepto');
+  var opt=sel.options[sel.selectedIndex];
+  var hint=document.getElementById('hint-cuantia');
+  if(!opt||!opt.dataset.min){hint.textContent='';return;}
+  var min=parseInt(opt.dataset.min)||0;
+  if(min>0&&val>0&&val<min){
+    hint.textContent='⚠ El valor $'+val.toLocaleString('es-CO')+' no supera la cuantía mínima ('+opt.dataset.minTxt+'). No aplica retención.';
+    hint.className='hint warn';
+  }else{hint.textContent='';hint.className='hint';}
+}
+function fmt(n){return '$'+Math.round(n).toLocaleString('es-CO');}
+function v(id){return parseFloat(document.getElementById(id).value)||0;}
+function s(id){return (document.getElementById(id)?document.getElementById(id).value:'')||'';}
 
-function verificarCuantia() {
-  var valor = parseFloat(document.getElementById('valor').value) || 0;
-  var alerta = document.getElementById('alerta-cuantia');
-  if (conceptoData.cuantia > 0 && valor > 0 && valor <= conceptoData.cuantia) {
-    alerta.innerHTML = 'El valor $' + valor.toLocaleString('es-CO') + ' no supera la cuantía mínima (' + conceptoData.cuantia_txt + '). No aplica retención.';
-    alerta.style.display = 'block';
-  } else { alerta.style.display = 'none'; }
+function calcularA(){
+  var nombre=s('t-nombre');var nit=s('t-nit');var tipo=s('t-tipo');var regimen=s('t-regimen');
+  var conceptoEl=document.getElementById('t-concepto');
+  var conceptoTxt=conceptoEl.options[conceptoEl.selectedIndex]?conceptoEl.options[conceptoEl.selectedIndex].text:'—';
+  var opt=conceptoEl.options[conceptoEl.selectedIndex];
+  var valor=v('t-valor');var pctRf=v('t-rf');var pctRica=v('t-rica');
+  var iva=s('t-iva');var fecha=s('t-fecha');var factura=s('t-factura');
+  var forma=s('t-forma');var desc=s('t-desc');
+  var entNombre=s('ent-nombre')||'Entidad pagadora';var entNit=s('ent-nit')||'—';var entRep=s('ent-rep')||'—';var entCiudad=s('ent-ciudad')||'—';
+  var area=document.getElementById('res-A');
+  if(!nombre){alert('Ingresa el nombre del beneficiario.');return;}
+  if(valor<=0){alert('Ingresa el valor del pago.');return;}
+  if(regimen==='simple'){
+    area.innerHTML='<div class="alerta warn" style="display:block;"><b>Régimen SIMPLE (Art. 911 E.T.):</b> El beneficiario no está sujeto a Retefuente. Verifique si aplica ReteICA según normativa municipal. El proveedor debe presentar RUT con código de responsabilidad 47.</div>';
+    document.getElementById('comp-A-wrap').innerHTML='<div class="empty-state">No se genera comprobante para Régimen SIMPLE.</div>';
+    return;
+  }
+  var minVal=opt?(parseInt(opt.dataset.min)||0):0;
+  if(minVal>0&&valor<minVal){
+    area.innerHTML='<div class="alerta warn" style="display:block;"><b>Cuantía mínima no superada:</b> El valor '+fmt(valor)+' no supera la cuantía mínima ('+(opt?opt.dataset.minTxt:'')+').<br><b>No aplica Retefuente</b> para este concepto. Verifique si aplica ReteICA.</div>';
+    return;
+  }
+  var ivaVal=iva==='si'?valor*0.19:0;
+  var reteIva=iva==='si'?ivaVal*0.15:0;
+  var retefuente=valor*(pctRf/100);
+  var reteica=valor*(pctRica/100);
+  var totalRet=retefuente+reteica+reteIva;
+  var neto=(valor+ivaVal)-totalRet;
+  var numComp='CE-'+new Date().getFullYear()+'-'+String(Math.floor(Math.random()*90000)+10000);
+  var fechaHoy=fecha||new Date().toLocaleDateString('es-CO');
+  var tipoTxt={jur:'Persona Jurídica',nat_dec:'Persona Natural — Declarante de Renta',nat_nodec:'Persona Natural — No Declarante'}[tipo]||'—';
+
+  var html='';
+  html+='<div class="res-row"><span class="res-label">Beneficiario</span><span class="res-val" style="font-size:11px;">'+nombre+'</span></div>';
+  html+='<div class="res-row"><span class="res-label">Tipo de persona</span><span class="res-val" style="font-size:11px;">'+tipoTxt+'</span></div>';
+  html+='<div class="res-row"><span class="res-label">Concepto</span><span class="res-val" style="font-size:11px;text-align:right;max-width:55%;">'+conceptoTxt+'</span></div>';
+  html+='<div class="res-row"><span class="res-label">Valor base (sin IVA)</span><span class="res-val">'+fmt(valor)+'</span></div>';
+  if(iva==='si'){
+    html+='<div class="res-row"><span class="res-label">IVA 19% (Art.468 E.T.)</span><span class="res-val gold">+ '+fmt(ivaVal)+'</span></div>';
+    html+='<div class="res-row"><span class="res-label">ReteIVA 15% del IVA (Art.437-1 E.T.)</span><span class="res-val red">− '+fmt(reteIva)+'</span></div>';
+  }
+  if(pctRf>0)html+='<div class="res-row"><span class="res-label">Retefuente '+pctRf+'%</span><span class="res-val red">− '+fmt(retefuente)+'</span></div>';
+  if(pctRica>0)html+='<div class="res-row"><span class="res-label">ReteICA '+pctRica+'‰</span><span class="res-val red">− '+fmt(reteica)+'</span></div>';
+  html+='<div class="total-box"><div class="total-label">Total retenciones a declarar en Formulario 350</div><div class="total-val">'+fmt(totalRet)+'</div></div>';
+  html+='<div class="neto-box"><div class="neto-label">Neto a pagar al beneficiario</div><div class="neto-val">'+fmt(neto)+'</div></div>';
+  area.innerHTML=html;
+
+  var compHTML='<div class="comp-header"><div class="comp-title">COMPROBANTE DE EGRESO</div>';
+  compHTML+='<div class="comp-sub">'+entNombre+' — NIT: '+entNit+' — '+entCiudad+'</div>';
+  compHTML+='<div class="comp-sub">N° '+numComp+' · Fecha: '+fechaHoy+'</div>';
+  compHTML+='<div class="comp-sub">Tipo entidad: '+tipoEntidad.toUpperCase()+' · GestorPH · Ley 675/2001</div></div>';
+  compHTML+='<div class="comp-section"><div class="comp-section-title">Datos del Beneficiario / Proveedor</div>';
+  compHTML+='<div class="comp-row"><span>Nombre / Razón social:</span><span>'+nombre+'</span></div>';
+  compHTML+='<div class="comp-row"><span>NIT / Cédula:</span><span>'+(nit||'—')+'</span></div>';
+  compHTML+='<div class="comp-row"><span>Tipo de persona:</span><span>'+tipoTxt+'</span></div>';
+  compHTML+='<div class="comp-row"><span>Régimen tributario:</span><span>'+regimen+'</span></div>';
+  if(factura)compHTML+='<div class="comp-row"><span>N° Factura / Soporte:</span><span>'+factura+'</span></div>';
+  compHTML+='<div class="comp-row"><span>Forma de pago:</span><span>'+forma+'</span></div></div>';
+  compHTML+='<div class="comp-section"><div class="comp-section-title">Concepto del Pago</div>';
+  compHTML+='<div class="comp-row"><span>Concepto:</span><span>'+conceptoTxt+'</span></div>';
+  if(desc)compHTML+='<div class="comp-row"><span>Descripción:</span><span>'+desc+'</span></div></div>';
+  compHTML+='<div class="comp-section"><div class="comp-section-title">Liquidación de Retenciones</div>';
+  compHTML+='<div class="comp-total-row"><span>Valor bruto del pago (base gravable):</span><span>'+fmt(valor)+'</span></div>';
+  if(iva==='si'){
+    compHTML+='<div class="comp-total-row"><span>IVA (19%) — Art.420 E.T.:</span><span>+ '+fmt(ivaVal)+'</span></div>';
+    compHTML+='<div class="comp-total-row" style="background:#fdf0ef;"><span>Retención de IVA (15% del IVA) — Art.437-1 E.T.:</span><span style="color:#c0392b;">− '+fmt(reteIva)+'</span></div>';
+  }
+  if(pctRf>0)compHTML+='<div class="comp-total-row" style="background:#fdf0ef;"><span>Retefuente ('+pctRf+'%) — Arts.392-401 E.T.:</span><span style="color:#c0392b;">− '+fmt(retefuente)+'</span></div>';
+  if(pctRica>0)compHTML+='<div class="comp-total-row" style="background:#fdf0ef;"><span>Retención ICA ('+pctRica+'‰) — Acuerdo Municipal:</span><span style="color:#c0392b;">− '+fmt(reteica)+'</span></div>';
+  compHTML+='<div class="comp-total-row" style="background:var(--gold-l);font-weight:700;"><span>Total retenciones practicadas (para Formulario 350):</span><span>− '+fmt(totalRet)+'</span></div>';
+  compHTML+='<div class="comp-neto"><span>VALOR NETO A PAGAR AL BENEFICIARIO:</span><span style="font-size:13px;">'+fmt(neto)+'</span></div></div>';
+  compHTML+='<div class="comp-firma"><div class="comp-firma-box">Firma Representante Legal / Administrador<br><small>'+entRep+'</small></div>';
+  compHTML+='<div class="comp-firma-box">Firma del Beneficiario<br><small>'+nombre+'</small></div></div>';
+  compHTML+='<div class="comp-footer">GestorPH · Herramienta de apoyo al contador y administrador de propiedad horizontal<br>';
+  compHTML+='Ley 675/2001 · E.T. Arts.367-419 · Decreto 0572/2025 · UVT 2026: $52.374 · Res.DIAN 000238/2025<br>';
+  compHTML+='<b>Documento con validez como soporte contable según Ley 527/1999 (documentos electrónicos) y Código de Comercio Art.50.</b></div>';
+
+  var compEl=document.createElement('div');
+  compEl.className='comprobante';compEl.id='comp-A';compEl.style.display='block';
+  compEl.innerHTML=compHTML;
+  compATexto=compEl.innerText||compEl.textContent;
+  var wrap=document.getElementById('comp-A-wrap');wrap.innerHTML='';wrap.appendChild(compEl);
+  document.getElementById('btn-actions-A').style.display='flex';
 }
 
-function calcular() {
-  var valor = parseFloat(document.getElementById('valor').value) || 0;
-  var pct_rf = parseFloat(document.getElementById('pct_rf').value) || 0;
-  var pct_rica = parseFloat(document.getElementById('pct_rica').value) || 0;
-  var aplica_iva = document.getElementById('aplica_iva').value;
-  var regimen = document.getElementById('regimen').value;
-  var sel = document.getElementById('concepto');
-  var concepto_txt = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '—';
-  var area = document.getElementById('resultado-area');
-
-  if (valor <= 0) { area.innerHTML = '<div class="empty-state" style="color:#c0392b;">Ingresa un valor mayor a cero.</div>'; return; }
-
-  if (regimen === 'simple') {
-    area.innerHTML = '<div class="no-aplica-msg">El proveedor está en <b>Régimen SIMPLE</b>.<br>No aplica Retefuente por renta según Art. 911 ET.<br>Verifique si aplica ReteICA según normativa municipal.</div>'; return;
-  }
-
-  if (conceptoData.cuantia > 0 && valor <= conceptoData.cuantia) {
-    area.innerHTML = '<div class="no-aplica-msg">El valor <b>' + fmt(valor) + '</b> no supera la cuantía mínima.<br><b>No aplica retención</b> para este concepto.<br>(' + (conceptoData.cuantia_txt || '') + ')</div>'; return;
-  }
-
-  var iva = aplica_iva === 'si' ? valor * 0.19 : 0;
-  var rete_iva = aplica_iva === 'si' ? iva * 0.15 : 0;
-  var retefuente = valor * (pct_rf / 100);
-  var reteica = valor * (pct_rica / 100);
-  var total_ret = retefuente + reteica + rete_iva;
-  var valor_con_iva = valor + iva;
-  var neto = valor_con_iva - total_ret;
-
-  var html = '';
-  html += '<div class="result-row"><span class="result-label">Concepto</span><span class="result-value" style="font-size:11px;text-align:right;max-width:55%;">' + concepto_txt + '</span></div>';
-  html += '<div class="result-row"><span class="result-label">Valor base (sin IVA)</span><span class="result-value">' + fmt(valor) + '</span></div>';
-  if (aplica_iva === 'si') {
-    html += '<div class="result-row"><span class="result-label">IVA 19%</span><span class="result-value">' + fmt(iva) + '</span></div>';
-    html += '<div class="result-row"><span class="result-label">ReteIVA — 15% del IVA <small style="color:#aaa">(Art.437-1 ET)</small></span><span class="result-value red">− ' + fmt(rete_iva) + '</span></div>';
-  }
-  html += '<div class="result-row"><span class="result-label">Retefuente ' + pct_rf + '% <small style="color:#aaa">(Arts.392-401 ET)</small></span><span class="result-value red">− ' + fmt(retefuente) + '</span></div>';
-  html += '<div class="result-row"><span class="result-label">ReteICA Cali ' + pct_rica + '‰</span><span class="result-value red">− ' + fmt(reteica) + '</span></div>';
-
-  html += '<div class="total-box"><div class="total-label">Total retenciones a declarar (Form. 350)</div><div class="total-value">' + fmt(total_ret) + '</div></div>';
-  html += '<div class="neto-box"><div class="neto-label">Neto a pagar al proveedor</div><div class="neto-value">' + fmt(neto) + '</div></div>';
-
-  area.innerHTML = html;
+function limpiarA(){
+  ['t-nombre','t-nit','t-valor','t-rf','t-rica','t-factura','t-desc'].forEach(id=>{var el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('t-tipo').value='';document.getElementById('t-concepto').value='';
+  document.getElementById('t-iva').value='no';document.getElementById('t-regimen').value='ordinario';
+  document.getElementById('t-fecha').value='';
+  document.getElementById('res-A').innerHTML='<div class="empty-state">Completa los datos y presiona<br>"Calcular y generar comprobante"</div>';
+  document.getElementById('comp-A-wrap').innerHTML='<div class="empty-state">El comprobante aparecerá aquí<br>después de calcular las retenciones</div>';
+  document.getElementById('btn-actions-A').style.display='none';
+  document.getElementById('hint-concepto').textContent='';document.getElementById('hint-cuantia').textContent='';
+  document.getElementById('norma-chip').style.display='none';
+  limpiarArchivo();
 }
 
-function limpiar() {
-  document.getElementById('concepto').value = '';
-  document.getElementById('valor').value = '';
-  document.getElementById('aplica_iva').value = 'no';
-  document.getElementById('pct_rf').value = '';
-  document.getElementById('pct_rica').value = '';
-  document.getElementById('regimen').value = 'ordinario';
-  document.getElementById('tarifas-auto').style.display = 'none';
-  document.getElementById('alerta-cuantia').style.display = 'none';
-  document.getElementById('resultado-area').innerHTML = '<div class="empty-state">Selecciona el concepto, ingresa el valor<br>y presiona "Calcular retenciones 2026"</div>';
-  conceptoData = {};
+// SECCIÓN B
+function autoCalcRet(){
+  var base=v('b-base');var tasa=v('b-tarifa');
+  if(base>0&&tasa>0){document.getElementById('b-ret').value=Math.round(base*(tasa/100));}
 }
+function agregarRetB(){
+  var concepto=s('b-concepto-sel');var base=v('b-base');var tarifa=v('b-tarifa');var ret=v('b-ret');
+  if(base<=0||ret<=0){alert('Ingresa la base gravable y el valor retenido.');return;}
+  retBList.push({concepto,tarifa,base,ret});
+  ['b-base','b-ret','b-tarifa'].forEach(id=>{document.getElementById(id).value='';});
+  renderListaB();
+}
+function renderListaB(){
+  var el=document.getElementById('lista-ret-B');
+  if(retBList.length===0){el.innerHTML='<div style="text-align:center;color:#ccc;font-size:11px;padding:.5rem;">Aún no hay retenciones registradas</div>';return;}
+  var totalBase=retBList.reduce((s,r)=>s+r.base,0);
+  var totalRet=retBList.reduce((s,r)=>s+r.ret,0);
+  var html='<div style="overflow-x:auto;"><table class="ref-table"><thead><tr><th>Concepto</th><th>Tarifa</th><th>Base gravable</th><th>Retención</th><th></th></tr></thead><tbody>';
+  retBList.forEach((r,i)=>{
+    html+='<tr><td>'+r.concepto+'</td><td>'+(r.tarifa||'—')+'%</td><td>'+fmt(r.base)+'</td><td style="color:#c0392b;font-weight:600;">'+fmt(r.ret)+'</td>';
+    html+='<td><button onclick="eliminarRetB('+i+')" style="background:none;border:.5px solid #f5c6c5;border-radius:3px;color:#c0392b;font-size:10px;padding:2px 6px;cursor:pointer;">✕</button></td></tr>';
+  });
+  html+='<tr style="background:var(--gold-l);font-weight:700;"><td>TOTAL</td><td>—</td><td>'+fmt(totalBase)+'</td><td style="color:#c0392b;">'+fmt(totalRet)+'</td><td></td></tr>';
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+function eliminarRetB(i){retBList.splice(i,1);renderListaB();}
+function calcAutoRet(){
+  var base=v('b-auto-base');var tasa=v('b-auto-tasa');
+  var res=document.getElementById('autorret-res');
+  if(base>0&&tasa>0){
+    var autoRet=base*(tasa/100);
+    res.innerHTML='Autorretención calculada: <b style="color:#c0392b;">'+fmt(autoRet)+'</b> ('+fmt(base)+' × '+tasa+'%)';
+    res.style.display='block';
+  }else{res.style.display='none';}
+}
+function calcVencimiento(){
+  var mes=s('b-mes');var digito=s('b-digito');
+  var mesesNombre=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var mesNum=parseInt(mes)||1;
+  var mesSig=mesNum===12?1:mesNum+1;
+  var anioSig=mesNum===12?2027:2026;
+  var diasHab={'1':'8°','2':'9°','3':'10°','4':'11°','5':'12°','6':'13°','7':'14°','8':'15°','9':'16°','0':'17°'};
+  var box=document.getElementById('venc-box');
+  box.innerHTML='📅 Las retenciones de <b>'+mesesNombre[mesNum]+' 2026</b> deben declararse y pagarse en el <b>'+diasHab[digito]+' día hábil de '+mesesNombre[mesSig]+' '+anioSig+'</b> (NIT terminado en '+digito+').<br>'+
+    '⚠ <b>Recuerde:</b> La declaración y el pago deben hacerse el mismo día. Una declaración sin pago es ineficaz (Art. 580-1 E.T.).<br>'+
+    '📌 Consulte la fecha exacta en el portal DIAN: <b>www.dian.gov.co</b>';
+}
+function generarResumenB(){
+  var totalBase=retBList.reduce((s,r)=>s+r.base,0);
+  var totalRet=retBList.reduce((s,r)=>s+r.ret,0);
+  var autoBase=v('b-auto-base');var autoTasa=v('b-auto-tasa');
+  var autoRet=autoBase*(autoTasa/100);
+  var granTotal=totalRet+autoRet;
+  var mes=s('b-mes');var digito=s('b-digito');
+  var mesesNombre=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var mesNum=parseInt(mes)||1;
+  var mesSig=mesNum===12?1:mesNum+1;var anioSig=mesNum===12?2027:2026;
+  var diasHab={'1':'8°','2':'9°','3':'10°','4':'11°','5':'12°','6':'13°','7':'14°','8':'15°','9':'16°','0':'17°'};
+
+  var html='';
+  html+='<div class="res-row"><span class="res-label">Entidad declarante</span><span class="res-val" style="font-size:11px;">'+(s('ent-nombre')||'—')+'</span></div>';
+  html+='<div class="res-row"><span class="res-label">Período declarado</span><span class="res-val">'+mesesNombre[mesNum]+' 2026</span></div>';
+  html+='<div class="res-row"><span class="res-label">Fecha límite (dígito NIT '+digito+')</span><span class="res-val gold">'+diasHab[digito]+' día hábil de '+mesesNombre[mesSig]+' '+anioSig+'</span></div>';
+  html+='<div class="res-row"><span class="res-label">Total base gravable del período</span><span class="res-val">'+fmt(totalBase)+'</span></div>';
+  html+='<div class="res-row"><span class="res-label">Retenciones practicadas a terceros</span><span class="res-val red">'+fmt(totalRet)+'</span></div>';
+  if(autoRet>0)html+='<div class="res-row"><span class="res-label">Autorretenciones ('+autoTasa+'%)</span><span class="res-val red">'+fmt(autoRet)+'</span></div>';
+  html+='<div class="total-box"><div class="total-label">TOTAL A DECLARAR Y PAGAR — Formulario 350</div><div class="total-val">'+fmt(granTotal)+'</div></div>';
+
+  if(granTotal===0){
+    html+='<div class="alerta warn" style="display:block;margin-top:8px;"><b>Valor cero:</b> Aunque no haya retenciones, debe presentar el Formulario 350 con valor $0. No presentarlo genera sanción.</div>';
+  }
+  document.getElementById('res-B').innerHTML=html;
+
+  var alertasHTML='';
+  alertasHTML+='<div class="alerta warn" style="display:block;"><b>⚠ Obligación aunque valor sea $0:</b> Si en el mes no practicó ninguna retención, igual debe presentar el Formulario 350 con valor cero. No hacerlo genera sanción (Art. 641 E.T.).</div>';
+  alertasHTML+='<div class="alerta danger" style="display:block;margin-top:6px;"><b>🚨 Declaración ineficaz sin pago:</b> La declaración presentada sin pago total es ineficaz para la DIAN (Art. 580-1 E.T.). El pago debe hacerse junto con la presentación, el mismo día.</div>';
+  alertasHTML+='<div class="alerta ok" style="display:block;margin-top:6px;"><b>✓ Sanción por extemporaneidad:</b> Si presenta después del vencimiento: 5% del total de retenciones por cada mes o fracción (Art. 641 E.T.). Sanción mínima 2026: $523.740 (10 UVT · Art. 639 E.T.).</div>';
+  if(tipoEntidad==='residencial'&&autoRet>0)alertasHTML+='<div class="alerta warn" style="display:block;margin-top:6px;"><b>Verificar:</b> Las copropiedades residenciales generalmente <b>no están sujetas a autorretención</b> de renta. Confirme con el contador antes de incluirla.</div>';
+  document.getElementById('alertas-B').innerHTML=alertasHTML;
+  document.getElementById('btn-actions-B').style.display='flex';
+  compBTexto=document.getElementById('res-B').innerText||'';
+}
+
+function imprimirComp(sec){
+  var el=sec==='A'?document.getElementById('comp-A'):document.getElementById('res-B');
+  if(!el){alert('Primero genera el comprobante.');return;}
+  var ifrm=document.getElementById('iframe-print');
+  ifrm.contentDocument.open();
+  ifrm.contentDocument.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>GestorPH</title>');
+  ifrm.contentDocument.write('<style>body{font-family:"Courier New",monospace;font-size:11px;margin:20px;color:#000;}*{box-sizing:border-box;}');
+  ifrm.contentDocument.write('.comp-header{text-align:center;margin-bottom:12px;border-bottom:2px solid #000;padding-bottom:8px;}');
+  ifrm.contentDocument.write('.comp-title{font-size:15px;font-weight:700;letter-spacing:1px;}.comp-sub{font-size:10px;color:#555;}');
+  ifrm.contentDocument.write('.comp-section{margin-bottom:10px;}.comp-section-title{font-weight:700;border-bottom:1px solid #ccc;margin-bottom:4px;padding-bottom:2px;text-transform:uppercase;font-size:9px;}');
+  ifrm.contentDocument.write('.comp-row{display:flex;justify-content:space-between;gap:8px;padding:2px 0;}.comp-row span:first-child{color:#555;flex:1;font-size:10px;}.comp-row span:last-child{font-weight:600;text-align:right;min-width:80px;}');
+  ifrm.contentDocument.write('.comp-total-row{display:flex;justify-content:space-between;padding:3px 5px;background:#f0f0f0;margin-bottom:2px;font-size:10px;}');
+  ifrm.contentDocument.write('.comp-neto{background:#000;color:#fff;padding:5px 8px;display:flex;justify-content:space-between;margin-top:5px;font-weight:700;}');
+  ifrm.contentDocument.write('.comp-firma{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}');
+  ifrm.contentDocument.write('.comp-firma-box{border-top:1px solid #000;padding-top:4px;text-align:center;font-size:9px;color:#555;}');
+  ifrm.contentDocument.write('.comp-footer{border-top:1px solid #ccc;margin-top:10px;padding-top:6px;text-align:center;font-size:8px;color:#888;line-height:1.6;}');
+  ifrm.contentDocument.write('@media print{body{margin:5px;}@page{margin:1.5cm;size:A4;}}</style></head><body>');
+  ifrm.contentDocument.write(el.innerHTML);
+  ifrm.contentDocument.write('</body></html>');
+  ifrm.contentDocument.close();
+  setTimeout(()=>{ifrm.contentWindow.focus();ifrm.contentWindow.print();},500);
+}
+function descargarPDF(sec){
+  var el=sec==='A'?document.getElementById('comp-A'):document.getElementById('res-B');
+  if(!el){alert('Primero genera el comprobante.');return;}
+  var win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Comprobante GestorPH</title>');
+  win.document.write('<style>body{font-family:"Courier New",monospace;font-size:11px;margin:25px;color:#000;}*{box-sizing:border-box;}');
+  win.document.write('.comp-header{text-align:center;margin-bottom:12px;border-bottom:2px solid #000;padding-bottom:8px;}');
+  win.document.write('.comp-title{font-size:15px;font-weight:700;letter-spacing:1px;}.comp-sub{font-size:10px;color:#555;}');
+  win.document.write('.comp-section{margin-bottom:10px;}.comp-section-title{font-weight:700;border-bottom:1px solid #ccc;margin-bottom:4px;padding-bottom:2px;text-transform:uppercase;font-size:9px;}');
+  win.document.write('.comp-row{display:flex;justify-content:space-between;gap:8px;padding:2px 0;}.comp-row span:first-child{color:#555;flex:1;font-size:10px;}.comp-row span:last-child{font-weight:600;text-align:right;min-width:80px;}');
+  win.document.write('.comp-total-row{display:flex;justify-content:space-between;padding:3px 5px;background:#f0f0f0;margin-bottom:2px;font-size:10px;}');
+  win.document.write('.comp-neto{background:#000;color:#fff;padding:5px 8px;display:flex;justify-content:space-between;margin-top:5px;font-weight:700;}');
+  win.document.write('.comp-firma{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}');
+  win.document.write('.comp-firma-box{border-top:1px solid #000;padding-top:4px;text-align:center;font-size:9px;color:#555;}');
+  win.document.write('.comp-footer{border-top:1px solid #ccc;margin-top:10px;padding-top:6px;text-align:center;font-size:8px;color:#888;line-height:1.6;}');
+  win.document.write('.total-box{background:#fdf3dc;border:1px solid #e8d5a0;border-radius:5px;padding:8px;margin-top:6px;}.total-label{font-size:10px;color:#b8953e;}.total-val{font-size:17px;font-weight:700;color:#b8953e;}');
+  win.document.write('.neto-box{background:#f0f8f0;border:1px solid #c3dfc3;border-radius:5px;padding:8px;margin-top:5px;}.neto-label{font-size:10px;color:#27ae60;}.neto-val{font-size:17px;font-weight:700;color:#27ae60;}');
+  win.document.write('.alerta{border-radius:5px;padding:6px 10px;font-size:10px;margin-top:5px;}.alerta.warn{background:#fef6e7;color:#d68910;}.alerta.danger{background:#fdf0ef;color:#c0392b;}.alerta.ok{background:#eafaf1;color:#27ae60;}');
+  win.document.write('.res-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:0.5px solid #f0eeea;font-size:11px;}.res-label{color:#666;flex:1;}.res-val{font-weight:600;}.res-val.red{color:#c0392b;}.res-val.gold{color:#b8953e;}');
+  win.document.write('@media print{body{margin:0;}@page{margin:1.5cm;size:A4;}}</style></head><body>');
+  win.document.write(el.innerHTML);
+  win.document.write('<script>window.onload=function(){window.print();setTimeout(function(){window.close();},2000);};<\/script>');
+  win.document.write('</body></html>');win.document.close();
+}
+function copiarTexto(sec){
+  var txt=sec==='A'?compATexto:compBTexto;
+  if(!txt)return;
+  navigator.clipboard.writeText(txt).then(()=>{
+    var btn=event.target;btn.textContent='¡Copiado!';
+    setTimeout(()=>{btn.textContent='📋 Copiar';},2000);
+  });
+}
+document.getElementById('t-fecha').value=new Date().toISOString().split('T')[0];
+calcVencimiento();
 </script>
+</body>
+</html>
