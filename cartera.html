@@ -1,305 +1,591 @@
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cartera — GestorPH</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  .page { display: flex; flex-direction: column; min-height: 680px; background: #f4f4f2; font-family: var(--font-sans); }
-  .topbar { background: #fff; border-bottom: 0.5px solid #e0deda; padding: 0.85rem 1.5rem; display: flex; align-items: center; gap: 12px; }
-  .back-btn { font-size: 12px; color: #C9A84C; cursor: pointer; background: none; border: none; padding: 0; }
-  .topbar-sep { color: #ddd; }
-  .topbar-title { font-size: 15px; font-weight: 500; color: #1a1a1a; }
-  .topbar-badge { margin-left: auto; background: #fdf3dc; color: #b8953e; font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 0.5px solid #e8d5a0; }
-
-  .stats-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; padding: 1rem 1.25rem 0; }
-  .stat-card { background: #fff; border: 0.5px solid #e0deda; border-radius: 8px; padding: 0.8rem 1rem; }
-  .stat-label { font-size: 11px; color: #aaa; margin-bottom: 4px; }
-  .stat-value { font-size: 18px; font-weight: 500; color: #1a1a1a; }
-  .stat-sub { font-size: 10px; margin-top: 2px; }
-  .stat-sub.red { color: #c0392b; }
-  .stat-sub.green { color: #27ae60; }
-  .stat-sub.gold { color: #C9A84C; }
-
-  .content { display: flex; gap: 1rem; padding: 1rem 1.25rem; flex: 1; }
-  .left-col { flex: 1.3; display: flex; flex-direction: column; gap: 1rem; }
-  .right-col { flex: 0.7; display: flex; flex-direction: column; gap: 1rem; }
-
-  .card { background: #fff; border: 0.5px solid #e0deda; border-radius: 10px; padding: 1rem 1.25rem; }
-  .card-title { font-size: 11px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 8px; }
-  .card-title-dot { width: 6px; height: 6px; border-radius: 50%; background: #C9A84C; flex-shrink: 0; }
-  .card-title-btn { margin-left: auto; background: #C9A84C; color: #fff; border: none; border-radius: 5px; font-size: 11px; padding: 4px 10px; cursor: pointer; }
-  .card-title-btn:hover { background: #b8953e; }
-
-  .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  label { font-size: 11px; color: #666; display: block; margin-bottom: 4px; }
-  input, select { width: 100%; background: #fafaf8; border: 0.5px solid #dddbd5; border-radius: 5px; color: #1a1a1a; font-size: 12px; padding: 7px 9px; outline: none; }
-  input:focus, select:focus { border-color: #C9A84C; }
-  input::placeholder { color: #bbb; }
-
-  .btn-agregar { width: 100%; background: #C9A84C; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; padding: 9px; cursor: pointer; margin-top: 4px; transition: background 0.2s; }
-  .btn-agregar:hover { background: #b8953e; }
-
-  .tabla-wrapper { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  thead th { font-size: 10px; color: #aaa; font-weight: 500; text-align: left; padding: 6px 8px; border-bottom: 0.5px solid #e0deda; text-transform: uppercase; letter-spacing: 0.3px; }
-  tbody tr { border-bottom: 0.5px solid #f0eeea; transition: background 0.1s; }
-  tbody tr:hover { background: #fdf9f2; }
-  tbody td { padding: 7px 8px; color: #333; vertical-align: middle; }
-  tbody tr:last-child { border-bottom: none; }
-
-  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
-  .badge.rojo { background: #fdf0ef; color: #c0392b; border: 0.5px solid #f5c6c5; }
-  .badge.naranja { background: #fef6e7; color: #d68910; border: 0.5px solid #f9d98a; }
-  .badge.verde { background: #eafaf1; color: #27ae60; border: 0.5px solid #c3dfc3; }
-  .badge.gris { background: #f4f4f2; color: #888; border: 0.5px solid #e0deda; }
-
-  .btn-accion { background: none; border: 0.5px solid #e0deda; border-radius: 4px; font-size: 10px; color: #888; padding: 3px 7px; cursor: pointer; margin-right: 3px; transition: border-color 0.15s, color 0.15s; }
-  .btn-accion:hover { border-color: #C9A84C; color: #C9A84C; }
-  .btn-accion.pagar { border-color: #c3dfc3; color: #27ae60; }
-  .btn-accion.pagar:hover { background: #eafaf1; }
-
-  .empty-tabla { text-align: center; padding: 1.5rem; color: #ccc; font-size: 12px; }
-
-  .estrategia-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #f0eeea; }
-  .estrategia-item:last-child { border-bottom: none; }
-  .est-num { width: 20px; height: 20px; border-radius: 50%; background: #fdf3dc; border: 1px solid #e8d5a0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; color: #b8953e; flex-shrink: 0; margin-top: 1px; }
-  .est-title { font-size: 12px; font-weight: 500; color: #333; margin-bottom: 2px; }
-  .est-desc { font-size: 11px; color: #999; line-height: 1.5; }
-
-  .mora-calc { background: #f4f4f2; border-radius: 6px; padding: 0.75rem; }
-  .mora-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; }
-  .mora-row span { color: #666; }
-  .mora-row b { color: #c0392b; }
-
-  .status-bar { background: #C9A84C; color: #fff; text-align: center; font-size: 11px; font-weight: 500; padding: 5px; letter-spacing: 0.5px; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--gold:#C9A84C;--gold-d:#b8953e;--gold-l:#fdf3dc;--gold-b:#e8d5a0;--bg:#f4f4f2;--white:#fff;--border:#e0deda;--text:#1a1a1a;--muted:#888;--danger:#c0392b;--success:#27ae60;--warn:#d68910;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;font-size:13px;}
+.topbar{background:var(--white);border-bottom:.5px solid var(--border);padding:.75rem 1.25rem;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.topbar-title{font-size:14px;font-weight:600;}
+.topbar-badge{margin-left:auto;background:var(--gold-l);color:var(--gold-d);font-size:10px;padding:3px 10px;border-radius:20px;border:.5px solid var(--gold-b);}
+.tabs{display:flex;background:var(--white);border-bottom:.5px solid var(--border);padding:0 1.25rem;}
+.tab{font-size:12px;color:var(--muted);padding:9px 14px;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;font-family:inherit;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:600;}
+.panel{display:none;padding:1rem 1.25rem;flex:1;flex-direction:column;gap:.85rem;}
+.panel.active{display:flex;}
+.stats-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+.stat-card{background:var(--white);border:.5px solid var(--border);border-radius:8px;padding:.8rem 1rem;}
+.stat-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.stat-value{font-size:18px;font-weight:600;color:var(--text);}
+.stat-sub{font-size:10px;margin-top:2px;}
+.stat-sub.red{color:var(--danger);}
+.stat-sub.green{color:var(--success);}
+.stat-sub.gold{color:var(--gold);}
+.two-col{display:grid;grid-template-columns:1fr 1.4fr;gap:1rem;}
+.card{background:var(--white);border:.5px solid var(--border);border-radius:10px;padding:.9rem 1.1rem;}
+.card-title{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:7px;}
+.card-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+.card-btn{margin-left:auto;background:var(--gold);color:#fff;border:none;border-radius:5px;font-size:10px;padding:3px 9px;cursor:pointer;font-family:inherit;}
+.card-btn:hover{background:var(--gold-d);}
+label{font-size:11px;color:#666;display:block;margin-bottom:3px;}
+input,select,textarea{width:100%;background:#fafaf8;border:.5px solid #dddbd5;border-radius:5px;color:var(--text);font-size:12px;padding:7px 9px;outline:none;font-family:inherit;}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);background:#fffdf7;}
+input::placeholder{color:#bbb;}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.full{margin-bottom:8px;}
+.btn{border:none;border-radius:6px;font-size:12px;font-weight:600;padding:8px 14px;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-gold{background:var(--gold);color:#fff;}.btn-gold:hover{background:var(--gold-d);}
+.btn-outline{background:transparent;color:var(--muted);border:.5px solid #dddbd5;}.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-full{width:100%;justify-content:center;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{font-size:10px;color:var(--muted);font-weight:600;text-align:left;padding:6px 8px;border-bottom:.5px solid var(--border);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
+tbody tr{border-bottom:.5px solid #f0eeea;transition:background .1s;}
+tbody tr:hover{background:#fdf9f2;}
+tbody td{padding:6px 8px;color:#333;vertical-align:middle;}
+tbody tr:last-child{border-bottom:none;}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.badge.rojo{background:#fdf0ef;color:var(--danger);border:.5px solid #f5c6c5;}
+.badge.naranja{background:#fef6e7;color:var(--warn);border:.5px solid #f9d98a;}
+.badge.verde{background:#eafaf1;color:var(--success);border:.5px solid #c3dfc3;}
+.badge.gris{background:#f4f4f2;color:var(--muted);border:.5px solid var(--border);}
+.btn-accion{background:none;border:.5px solid var(--border);border-radius:4px;font-size:10px;color:var(--muted);padding:3px 7px;cursor:pointer;margin-right:3px;font-family:inherit;transition:all .15s;}
+.btn-accion:hover{border-color:var(--gold);color:var(--gold);}
+.btn-accion.pagar{border-color:#c3dfc3;color:var(--success);}
+.btn-accion.pagar:hover{background:#eafaf1;}
+.btn-accion.eliminar:hover{border-color:var(--danger);color:var(--danger);}
+.empty-state{text-align:center;padding:1.5rem;color:#ccc;font-size:12px;}
+.estrategia-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:.5px solid #f0eeea;}
+.estrategia-item:last-child{border-bottom:none;}
+.est-num{width:22px;height:22px;border-radius:50%;background:var(--gold-l);border:1px solid var(--gold-b);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--gold-d);flex-shrink:0;margin-top:1px;}
+.est-title{font-size:12px;font-weight:600;color:#333;margin-bottom:2px;}
+.est-desc{font-size:11px;color:#999;line-height:1.5;}
+.est-norma{font-size:10px;color:var(--gold-d);margin-top:2px;}
+.mora-calc{background:#f4f4f2;border-radius:6px;padding:.75rem;}
+.mora-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;}
+.mora-row b{color:var(--danger);}
+.info-box{background:var(--gold-l);border:.5px solid var(--gold-b);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:8px 12px;font-size:11px;color:#8a6a1e;line-height:1.6;}
+.alerta-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:.5px solid #f0eeea;font-size:11px;}
+.alerta-item:last-child{border-bottom:none;}
+.alerta-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.alerta-dot.red{background:var(--danger);}
+.alerta-dot.gold{background:var(--gold);}
+.alerta-dot.green{background:var(--success);}
+.btn-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:.75rem;}
+.status-bar{background:var(--gold);color:#fff;text-align:center;font-size:11px;font-weight:600;padding:5px;letter-spacing:.5px;flex-shrink:0;}
+iframe{display:none;}
+@media(max-width:700px){.two-col{grid-template-columns:1fr;}.stats-row{grid-template-columns:1fr 1fr;}.r2,.r3{grid-template-columns:1fr;}}
 </style>
+</head>
+<body>
 
-<div class="page">
-  <div class="topbar">
-    <button class="back-btn" onclick="sendPrompt('Volver al dashboard principal de GestorPH')">← Volver</button>
-    <span class="topbar-sep">/</span>
-    <span class="topbar-title">Recuperación de Cartera</span>
-    <span class="topbar-badge">Gestión de cobro · Propiedad Horizontal</span>
-  </div>
+<div class="topbar">
+  <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#C9A84C" stroke-width="1.2"/><path d="M8 5v3l2 1.5" stroke="#C9A84C" stroke-width="1.2" stroke-linecap="round"/></svg>
+  <span class="topbar-title">Recuperacion de Cartera</span>
+  <span class="topbar-badge">Ley 675/2001 · Art. 18 · Proceso ejecutivo</span>
+</div>
 
+<div class="tabs">
+  <button class="tab active" onclick="showTab('registro')">Registrar deudor</button>
+  <button class="tab" onclick="showTab('listado')">Listado y seguimiento</button>
+  <button class="tab" onclick="showTab('mora')">Calculadora de mora</button>
+  <button class="tab" onclick="showTab('estrategias')">Estrategias de cobro</button>
+</div>
+
+<!-- TAB REGISTRO -->
+<div class="panel active" id="tab-registro">
   <div class="stats-row" id="stats-row">
     <div class="stat-card"><div class="stat-label">Total cartera</div><div class="stat-value" id="st-total">$0</div><div class="stat-sub gold">Registrada</div></div>
-    <div class="stat-card"><div class="stat-label">En mora</div><div class="stat-value" id="st-mora">$0</div><div class="stat-sub red">+30 días</div></div>
-    <div class="stat-card"><div class="stat-label">Deudores activos</div><div class="stat-value" id="st-deudores">0</div><div class="stat-sub gold">Registrados</div></div>
+    <div class="stat-card"><div class="stat-label">En mora</div><div class="stat-value" id="st-mora">$0</div><div class="stat-sub red">+30 dias</div></div>
+    <div class="stat-card"><div class="stat-label">Deudores activos</div><div class="stat-value" id="st-deudores">0</div><div class="stat-sub gold">Sin pagar</div></div>
     <div class="stat-card"><div class="stat-label">Recuperado</div><div class="stat-value" id="st-rec">$0</div><div class="stat-sub green">Pagado</div></div>
   </div>
-
-  <div class="content">
-    <div class="left-col">
-
-      <div class="card">
-        <div class="card-title"><span class="card-title-dot"></span>Registrar deudor</div>
-        <div class="form-row">
-          <div><label>Apto / Casa / Unidad</label><input type="text" id="f-unidad" placeholder="Ej: Apto 301" /></div>
-          <div><label>Propietario / Residente</label><input type="text" id="f-nombre" placeholder="Nombre completo" /></div>
-          <div><label>Teléfono / Contacto</label><input type="text" id="f-tel" placeholder="Ej: 315 000 0000" /></div>
-        </div>
-        <div class="form-row">
-          <div><label>Valor deuda ($)</label><input type="number" id="f-valor" placeholder="0" min="0" /></div>
-          <div><label>Fecha de vencimiento</label><input type="date" id="f-fecha" /></div>
-          <div>
-            <label>Estado</label>
-            <select id="f-estado">
-              <option value="reciente">Reciente (0–30 días)</option>
-              <option value="mora">En mora (31–90 días)</option>
-              <option value="critico">Crítico (+90 días)</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row-2">
-          <div><label>Concepto</label>
-            <select id="f-concepto">
-              <option>Cuota de administración</option>
-              <option>Cuota extraordinaria</option>
-              <option>Multa por incumplimiento</option>
-              <option>Parqueadero</option>
-              <option>Otro</option>
-            </select>
-          </div>
-          <div><label>Estrategia de cobro</label>
-            <select id="f-estrategia">
-              <option value="llamada">Llamada telefónica</option>
-              <option value="carta">Carta de cobro</option>
-              <option value="prejuridico">Cobro prejurídico</option>
-              <option value="juridico">Cobro jurídico</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn-agregar" onclick="agregarDeudor()">+ Agregar deudor a la cartera</button>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>Registrar nuevo deudor</div>
+      <div class="r2">
+        <div><label>Unidad / Apto / Casa</label><input type="text" id="f-unidad" placeholder="Ej: Apto 301"/></div>
+        <div><label>Propietario / Residente</label><input type="text" id="f-nombre" placeholder="Nombre completo"/></div>
       </div>
-
-      <div class="card">
-        <div class="card-title">
-          <span class="card-title-dot"></span>Listado de deudores
-          <button class="card-title-btn" onclick="exportarResumen()">Exportar resumen ↗</button>
+      <div class="r2">
+        <div><label>Telefono de contacto</label><input type="text" id="f-tel" placeholder="Ej: 315 000 0000"/></div>
+        <div><label>Correo electronico</label><input type="email" id="f-email" placeholder="correo@ejemplo.com"/></div>
+      </div>
+      <div class="r2">
+        <div><label>Valor de la deuda ($)</label><input type="number" id="f-valor" placeholder="0" min="0"/></div>
+        <div><label>Fecha de vencimiento</label><input type="date" id="f-fecha"/></div>
+      </div>
+      <div class="r2">
+        <div><label>Concepto de la deuda</label>
+          <select id="f-concepto">
+            <option>Cuota de administracion</option>
+            <option>Cuota extraordinaria</option>
+            <option>Multa por incumplimiento</option>
+            <option>Parqueadero</option>
+            <option>Intereses de mora</option>
+            <option>Otro</option>
+          </select>
         </div>
-        <div class="tabla-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Unidad</th>
-                <th>Residente</th>
-                <th>Concepto</th>
-                <th>Valor deuda</th>
-                <th>Vencimiento</th>
-                <th>Estado</th>
-                <th>Estrategia</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tabla-body">
-              <tr><td colspan="8" class="empty-tabla">Aún no hay deudores registrados.<br>Usa el formulario de arriba para agregar.</td></tr>
-            </tbody>
-          </table>
+        <div><label>Estado de mora</label>
+          <select id="f-estado">
+            <option value="reciente">Reciente (0-30 dias)</option>
+            <option value="mora">En mora (31-90 dias)</option>
+            <option value="critico">Critico (+90 dias)</option>
+          </select>
         </div>
       </div>
-
+      <div class="r2">
+        <div><label>Estrategia de cobro</label>
+          <select id="f-estrategia">
+            <option value="llamada">Llamada telefonica</option>
+            <option value="carta">Carta de cobro formal</option>
+            <option value="prejuridico">Cobro prejuridico</option>
+            <option value="juridico">Cobro juridico (Art. 18 Ley 675)</option>
+          </select>
+        </div>
+        <div><label>Numero de cuotas vencidas</label><input type="number" id="f-cuotas" placeholder="Ej: 3" min="1"/></div>
+      </div>
+      <div class="full"><label>Observaciones</label><textarea id="f-obs" rows="2" placeholder="Acuerdos de pago, compromisos, situaciones especiales..."></textarea></div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn btn-gold" style="flex:1;" onclick="agregarDeudor()">+ Agregar deudor</button>
+        <button class="btn btn-outline" onclick="limpiarForm()">Limpiar</button>
+      </div>
     </div>
-
-    <div class="right-col">
-
+    <div style="display:flex;flex-direction:column;gap:.85rem;">
       <div class="card">
-        <div class="card-title"><span class="card-title-dot"></span>Estrategias de cobro</div>
+        <div class="card-title"><span class="card-dot"></span>Alertas de cartera critica</div>
+        <div id="alertas-cartera"><div class="empty-state">Las alertas apareceran al registrar deudores</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Base legal del cobro</div>
+        <div class="info-box">
+          <b>Ley 675/2001 Art. 18:</b> Los propietarios estan obligados al pago de expensas comunes. Las cuotas en mora generan interes de mora y pueden ser objeto de proceso ejecutivo ante juez civil municipal.<br><br>
+          <b>Proceso de cobro recomendado:</b><br>
+          1. Notificacion amigable (0-30 dias)<br>
+          2. Carta formal con liquidacion de mora (31-60 dias)<br>
+          3. Cobro prejuridico (61-90 dias)<br>
+          4. Demanda ejecutiva — titulo ejecutivo: acta de asamblea + extracto de cuenta (+90 dias)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB LISTADO -->
+<div class="panel" id="tab-listado">
+  <div style="display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap;">
+    <input type="text" id="buscar" placeholder="Buscar por unidad, nombre o estado..." style="flex:1;min-width:150px;" oninput="filtrar()"/>
+    <select id="filtro-estado" style="width:160px;" onchange="filtrar()">
+      <option value="">Todos los estados</option>
+      <option value="reciente">Reciente</option>
+      <option value="mora">En mora</option>
+      <option value="critico">Critico</option>
+      <option value="pagado">Pagado</option>
+    </select>
+    <button class="btn btn-gold" onclick="exportarResumen()">Exportar .txt</button>
+    <button class="btn btn-outline" onclick="imprimirListado()">Imprimir</button>
+  </div>
+  <div class="card" style="flex:1;overflow:auto;">
+    <div class="card-title"><span class="card-dot"></span>Listado de deudores <span class="card-btn" onclick="showTab('registro')">+ Nuevo deudor</span></div>
+    <div id="tabla-wrap"><div class="empty-state">Aun no hay deudores registrados.<br>Ve a "Registrar deudor" para agregar.</div></div>
+  </div>
+</div>
+
+<!-- TAB MORA -->
+<div class="panel" id="tab-mora">
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:.85rem;">
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Calculadora de intereses de mora</div>
+        <div class="full"><label>Valor de la deuda principal ($)</label><input type="number" id="m-valor" placeholder="0" oninput="calcMora()"/></div>
+        <div class="r2">
+          <div><label>Fecha de vencimiento</label><input type="date" id="m-fecha-venc" oninput="calcMora()"/></div>
+          <div><label>Fecha de calculo</label><input type="date" id="m-fecha-calc" oninput="calcMora()"/></div>
+        </div>
+        <div class="r2">
+          <div><label>Tasa de mora mensual (%)</label><input type="number" id="m-tasa" value="1.5" step="0.1" oninput="calcMora()"/><div style="font-size:10px;color:#bbb;margin-top:3px;">Segun reglamento PH · Max legal: 1.5% mensual</div></div>
+          <div><label>Cuotas en mora</label><input type="number" id="m-cuotas" placeholder="Ej: 3" min="0" oninput="calcMora()"/></div>
+        </div>
+        <div class="mora-calc" id="mora-resultado">
+          <div class="mora-row"><span>Dias de mora</span><b id="m-dias">0 dias</b></div>
+          <div class="mora-row"><span>Intereses de mora</span><b id="m-int">$0</b></div>
+          <div class="mora-row"><span>Total a cobrar</span><b id="m-tot">$0</b></div>
+        </div>
+        <div style="font-size:10px;color:#bbb;margin-top:8px;line-height:1.5;">Base normativa: Ley 675/2001 Art. 18 · Codigo Civil Col. Art. 1617 · Tasa segun reglamento de propiedad horizontal.</div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Liquidacion de deuda total</div>
+        <div class="r2">
+          <div><label>Cuota mensual ($)</label><input type="number" id="liq-cuota" placeholder="0" oninput="calcLiquidacion()"/></div>
+          <div><label>Meses en mora</label><input type="number" id="liq-meses" placeholder="0" min="0" oninput="calcLiquidacion()"/></div>
+        </div>
+        <div class="full"><label>% interes mora mensual</label><input type="number" id="liq-tasa" value="1.5" step="0.1" oninput="calcLiquidacion()"/></div>
+        <div class="mora-calc" id="liq-resultado">
+          <div class="mora-row"><span>Capital en mora</span><b id="liq-capital">$0</b></div>
+          <div class="mora-row"><span>Intereses acumulados</span><b id="liq-int">$0</b></div>
+          <div class="mora-row"><span>Total liquidado</span><b id="liq-tot" style="font-size:14px;">$0</b></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn btn-gold" style="flex:1;" onclick="imprimirMora()">Imprimir liquidacion</button>
+          <button class="btn btn-success" onclick="descargarMoraPDF()">PDF</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-dot"></span>Clasificacion de cartera por antiguedad</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Segun estandares de gestion financiera y Ley 675/2001</div>
+      <div style="display:flex;flex-direction:column;gap:8px;" id="clasificacion-mora">
+        <div style="background:#eafaf1;border:.5px solid #c3dfc3;border-radius:6px;padding:10px;">
+          <div style="font-size:12px;font-weight:600;color:var(--success);">Corriente (0-30 dias)</div>
+          <div style="font-size:11px;color:#555;margin-top:3px;">Deuda reciente. Estrategia: recordatorio amigable por llamada o mensaje.</div>
+          <div style="font-size:10px;color:var(--success);margin-top:2px;">Riesgo bajo · Recuperacion alta</div>
+        </div>
+        <div style="background:#fef6e7;border:.5px solid #f9d98a;border-radius:6px;padding:10px;">
+          <div style="font-size:12px;font-weight:600;color:var(--warn);">En mora (31-90 dias)</div>
+          <div style="font-size:11px;color:#555;margin-top:3px;">Requiere gestion activa. Carta formal con liquidacion de interes y plazo maximo.</div>
+          <div style="font-size:10px;color:var(--warn);margin-top:2px;">Riesgo medio · Accion inmediata</div>
+        </div>
+        <div style="background:#fdf0ef;border:.5px solid #f5c6c5;border-radius:6px;padding:10px;">
+          <div style="font-size:12px;font-weight:600;color:var(--danger);">Critica (+90 dias)</div>
+          <div style="font-size:11px;color:#555;margin-top:3px;">Cobro prejuridico o juridico. Proceso ejecutivo segun Art. 18 Ley 675/2001.</div>
+          <div style="font-size:10px;color:var(--danger);margin-top:2px;">Riesgo alto · Accion juridica</div>
+        </div>
+        <div style="background:#f4f4f2;border:.5px solid var(--border);border-radius:6px;padding:10px;">
+          <div style="font-size:12px;font-weight:600;color:var(--muted);">Incobrables (+180 dias)</div>
+          <div style="font-size:11px;color:#555;margin-top:3px;">Evaluar castigo contable previo concepto del contador. Informe a asamblea.</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">Provision contable recomendada</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB ESTRATEGIAS -->
+<div class="panel" id="tab-estrategias">
+  <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:.85rem;">
+      <div class="card">
+        <div class="card-title"><span class="card-dot"></span>Estrategias de recuperacion</div>
         <div class="estrategia-item">
           <div class="est-num">1</div>
-          <div><div class="est-title">Llamada telefónica</div><div class="est-desc">0–30 días. Primer contacto amigable, recordatorio de pago y acuerdo de fecha.</div></div>
+          <div>
+            <div class="est-title">Llamada telefonica amigable</div>
+            <div class="est-desc">0-30 dias. Primer contacto cordial. Recordatorio del vencimiento, acuerdo de fecha de pago y registro del compromiso.</div>
+            <div class="est-norma">Buenas practicas de gestion · Sin costo juridico</div>
+          </div>
         </div>
         <div class="estrategia-item">
           <div class="est-num">2</div>
-          <div><div class="est-title">Carta de cobro formal</div><div class="est-desc">31–60 días. Comunicación escrita con detalle de deuda, intereses y plazo máximo.</div></div>
+          <div>
+            <div class="est-title">Carta de cobro formal</div>
+            <div class="est-desc">31-60 dias. Comunicacion escrita con liquidacion detallada: capital + intereses de mora + plazo maximo para pago voluntario.</div>
+            <div class="est-norma">Art. 18 Ley 675/2001 · Soporte documental del proceso</div>
+          </div>
         </div>
         <div class="estrategia-item">
           <div class="est-num">3</div>
-          <div><div class="est-title">Cobro prejurídico</div><div class="est-desc">61–90 días. Gestión a través de abogado externo. Acuerdo de pago o cuotas.</div></div>
+          <div>
+            <div class="est-title">Cobro prejuridico</div>
+            <div class="est-desc">61-90 dias. Gestion a traves de abogado externo. Oferta de acuerdo de pago en cuotas. Ultima oportunidad antes del proceso judicial.</div>
+            <div class="est-norma">Intermediacion abogado · Posible acuerdo extrajudicial</div>
+          </div>
         </div>
         <div class="estrategia-item">
           <div class="est-num">4</div>
-          <div><div class="est-title">Cobro jurídico</div><div class="est-desc">+90 días. Proceso ejecutivo según Art. 18 Ley 675/2001. Embargo de cuota.</div></div>
+          <div>
+            <div class="est-title">Proceso ejecutivo judicial</div>
+            <div class="est-desc">+90 dias. Demanda ante juez civil municipal. Titulo ejecutivo: acta de asamblea que aprueba presupuesto + extracto de cuenta del deudor.</div>
+            <div class="est-norma">Art. 18 Ley 675/2001 · Juez civil municipal · Embargo de bienes</div>
+          </div>
         </div>
       </div>
-
       <div class="card">
-        <div class="card-title"><span class="card-title-dot"></span>Calculadora de intereses de mora</div>
-        <div style="margin-bottom:8px;">
-          <label>Valor de la deuda ($)</label>
-          <input type="number" id="m-valor" placeholder="0" oninput="calcMora()" />
+        <div class="card-title"><span class="card-dot"></span>Generador de carta de cobro</div>
+        <div class="r2">
+          <div><label>Nombre del deudor</label><input type="text" id="carta-nombre" placeholder="Nombre completo"/></div>
+          <div><label>Unidad / Apto</label><input type="text" id="carta-unidad" placeholder="Ej: Apto 301"/></div>
         </div>
-        <div style="margin-bottom:8px;">
-          <label>Días de mora</label>
-          <input type="number" id="m-dias" placeholder="0" min="0" oninput="calcMora()" />
+        <div class="r2">
+          <div><label>Valor total de la deuda ($)</label><input type="number" id="carta-valor" placeholder="0"/></div>
+          <div><label>Cuotas vencidas</label><input type="number" id="carta-cuotas" placeholder="Ej: 3"/></div>
         </div>
-        <div style="margin-bottom:8px;">
-          <label>Tasa de mora mensual (%)</label>
-          <input type="number" id="m-tasa" value="1.5" step="0.1" oninput="calcMora()" />
+        <div class="full"><label>Nombre de la copropiedad</label><input type="text" id="carta-coprop" placeholder="Ej: Conjunto Residencial Los Alamos PH"/></div>
+        <div class="r2">
+          <div><label>Tipo de carta</label>
+            <select id="carta-tipo">
+              <option value="primer">Primer aviso (amigable)</option>
+              <option value="segundo">Segundo aviso (formal)</option>
+              <option value="prejuridico">Aviso prejuridico</option>
+            </select>
+          </div>
+          <div><label>Plazo para pagar (dias)</label><input type="number" id="carta-plazo" value="5" min="1"/></div>
         </div>
-        <div class="mora-calc" id="mora-resultado">
-          <div class="mora-row"><span>Intereses estimados</span><b id="m-int">$0</b></div>
-          <div class="mora-row"><span>Total a cobrar</span><b id="m-tot">$0</b></div>
-        </div>
-        <div style="font-size:10px;color:#bbb;margin-top:6px;">Referencia: interés de mora según Ley 675/2001 y acuerdos del reglamento de la copropiedad.</div>
+        <button class="btn btn-gold btn-full" onclick="generarCarta()" style="margin-top:4px;">Generar carta de cobro</button>
       </div>
-
+    </div>
+    <div class="card" style="flex:1;">
+      <div class="card-title"><span class="card-dot"></span>Vista previa de carta</div>
+      <div id="carta-preview" style="background:#fafaf8;border:.5px solid var(--border);border-radius:6px;padding:1rem;min-height:300px;font-size:12px;line-height:1.8;color:#333;white-space:pre-wrap;">
+        <span style="color:#ccc;">La carta aparecera aqui despues de generarla...</span>
+      </div>
+      <div class="btn-actions" id="carta-actions" style="display:none;">
+        <button class="btn btn-gold" onclick="imprimirCarta()">Imprimir carta</button>
+        <button class="btn btn-success" onclick="descargarCartaPDF()">PDF</button>
+        <button class="btn btn-outline" onclick="copiarCarta()">Copiar texto</button>
+      </div>
     </div>
   </div>
-
-  <div class="status-bar">GestorPH · Módulo Recuperación de Cartera · Ley 675/2001 · Propiedad Horizontal Colombia</div>
 </div>
 
+<div class="status-bar">GestorPH · Recuperacion de Cartera · Ley 675/2001 · Art. 18 · Proceso ejecutivo · Colombia</div>
+<iframe id="iframe-print" style="display:none;"></iframe>
+
 <script>
-var deudores = [];
+var params=new URLSearchParams(window.location.search);
+var usuarioEmail=decodeURIComponent(params.get('u')||'demo');
+var STORAGE_KEY='gestorph_cartera_'+usuarioEmail;
+var deudores=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
 
-function fmt(n) { return '$' + Math.round(n).toLocaleString('es-CO'); }
+function fmt(n){return '$'+Math.round(n).toLocaleString('es-CO');}
+function guardar(){localStorage.setItem(STORAGE_KEY,JSON.stringify(deudores));}
 
-var estadoLabel = { reciente: ['Reciente', 'gris'], mora: ['En mora', 'naranja'], critico: ['Crítico', 'rojo'], pagado: ['Pagado', 'verde'] };
-var estrategiaLabel = { llamada: 'Llamada', carta: 'Carta cobro', prejuridico: 'Prejurídico', juridico: 'Jurídico' };
+var estadoLabel={reciente:['Reciente','gris'],mora:['En mora','naranja'],critico:['Critico','rojo'],pagado:['Pagado','verde']};
+var estrategiaLabel={llamada:'Llamada',carta:'Carta cobro',prejuridico:'Prejuridico',juridico:'Juridico'};
 
-function actualizarStats() {
-  var total = 0, mora = 0, rec = 0, activos = 0;
-  deudores.forEach(function(d) {
-    if (d.estado !== 'pagado') { total += d.valor; activos++; }
-    if (d.estado === 'mora' || d.estado === 'critico') mora += d.valor;
-    if (d.estado === 'pagado') rec += d.valor;
-  });
-  document.getElementById('st-total').textContent = fmt(total);
-  document.getElementById('st-mora').textContent = fmt(mora);
-  document.getElementById('st-deudores').textContent = activos;
-  document.getElementById('st-rec').textContent = fmt(rec);
+function showTab(tab){
+  var tabs=['registro','listado','mora','estrategias'];
+  document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',tabs[i]===tab);});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='listado') renderTabla(deudores);
 }
 
-function renderTabla() {
-  var tbody = document.getElementById('tabla-body');
-  if (deudores.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="empty-tabla">Aún no hay deudores registrados.<br>Usa el formulario de arriba para agregar.</td></tr>';
-    return;
+function actualizarStats(){
+  var total=0,mora=0,rec=0,activos=0;
+  deudores.forEach(function(d){
+    if(d.estado!=='pagado'){total+=d.valor;activos++;}
+    if(d.estado==='mora'||d.estado==='critico') mora+=d.valor;
+    if(d.estado==='pagado') rec+=d.valor;
+  });
+  document.getElementById('st-total').textContent=fmt(total);
+  document.getElementById('st-mora').textContent=fmt(mora);
+  document.getElementById('st-deudores').textContent=activos;
+  document.getElementById('st-rec').textContent=fmt(rec);
+  generarAlertas();
+}
+
+function generarAlertas(){
+  var criticos=deudores.filter(function(d){return d.estado==='critico'&&d.estado!=='pagado';});
+  var morosos=deudores.filter(function(d){return d.estado==='mora'&&d.estado!=='pagado';});
+  var el=document.getElementById('alertas-cartera');
+  if(deudores.length===0){el.innerHTML='<div class="empty-state">Las alertas apareceran al registrar deudores</div>';return;}
+  var html='';
+  if(criticos.length>0) html+='<div class="alerta-item"><div class="alerta-dot red"></div><div><b>'+criticos.length+' deudores criticos</b> (+90 dias). Iniciar proceso juridico segun Art. 18 Ley 675/2001.</div></div>';
+  if(morosos.length>0) html+='<div class="alerta-item"><div class="alerta-dot gold"></div><div><b>'+morosos.length+' deudores en mora</b> (31-90 dias). Enviar carta formal de cobro con liquidacion.</div></div>';
+  var totalPend=deudores.filter(function(d){return d.estado!=='pagado';}).reduce(function(s,d){return s+d.valor;},0);
+  if(totalPend>0) html+='<div class="alerta-item"><div class="alerta-dot gold"></div><div>Cartera pendiente total: <b>'+fmt(totalPend)+'</b>. Impacta el flujo de caja de la copropiedad.</div></div>';
+  if(criticos.length===0&&morosos.length===0) html+='<div class="alerta-item"><div class="alerta-dot green"></div><div>Sin alertas criticas. Continua el seguimiento mensual.</div></div>';
+  el.innerHTML=html;
+}
+
+function agregarDeudor(){
+  var unidad=document.getElementById('f-unidad').value.trim();
+  var nombre=document.getElementById('f-nombre').value.trim();
+  var valor=parseFloat(document.getElementById('f-valor').value)||0;
+  if(!unidad||!nombre){alert('Ingresa la unidad y el nombre del residente.');return;}
+  if(valor<=0){alert('Ingresa el valor de la deuda.');return;}
+  deudores.push({
+    unidad:unidad,nombre:nombre,
+    tel:document.getElementById('f-tel').value.trim(),
+    email:document.getElementById('f-email').value.trim(),
+    valor:valor,fecha:document.getElementById('f-fecha').value,
+    concepto:document.getElementById('f-concepto').value,
+    estado:document.getElementById('f-estado').value,
+    estrategia:document.getElementById('f-estrategia').value,
+    cuotas:document.getElementById('f-cuotas').value,
+    obs:document.getElementById('f-obs').value.trim(),
+    id:Date.now()
+  });
+  guardar();actualizarStats();limpiarForm();
+  alert('Deudor registrado correctamente.');
+}
+
+function limpiarForm(){
+  ['f-unidad','f-nombre','f-tel','f-email','f-valor','f-fecha','f-cuotas','f-obs'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('f-concepto').selectedIndex=0;
+  document.getElementById('f-estado').selectedIndex=0;
+  document.getElementById('f-estrategia').selectedIndex=0;
+}
+
+function renderTabla(lista){
+  var wrap=document.getElementById('tabla-wrap');
+  if(lista.length===0){wrap.innerHTML='<div class="empty-state">No se encontraron deudores.</div>';return;}
+  var html='<div style="overflow-x:auto;"><table><thead><tr><th>Unidad</th><th>Residente</th><th>Concepto</th><th>Valor</th><th>Vencimiento</th><th>Cuotas</th><th>Estado</th><th>Estrategia</th><th>Acciones</th></tr></thead><tbody>';
+  lista.forEach(function(d){
+    var est=estadoLabel[d.estado]||['—','gris'];
+    html+='<tr>';
+    html+='<td><b>'+d.unidad+'</b></td>';
+    html+='<td>'+d.nombre+(d.tel?'<br><span style="font-size:10px;color:#aaa;">'+d.tel+'</span>':'')+'</td>';
+    html+='<td>'+d.concepto+'</td>';
+    html+='<td style="color:var(--danger);font-weight:600;">'+fmt(d.valor)+'</td>';
+    html+='<td>'+(d.fecha||'—')+'</td>';
+    html+='<td style="text-align:center;">'+(d.cuotas||'—')+'</td>';
+    html+='<td><span class="badge '+est[1]+'">'+est[0]+'</span></td>';
+    html+='<td>'+(estrategiaLabel[d.estrategia]||d.estrategia)+'</td>';
+    html+='<td>';
+    if(d.estado!=='pagado') html+='<button class="btn-accion pagar" onclick="marcarPagado('+d.id+')">Pagado</button>';
+    html+='<button class="btn-accion eliminar" onclick="eliminar('+d.id+')">Quitar</button>';
+    html+='</td></tr>';
+  });
+  html+='</tbody></table></div>';
+  wrap.innerHTML=html;
+}
+
+function filtrar(){
+  var txt=document.getElementById('buscar').value.toLowerCase();
+  var est=document.getElementById('filtro-estado').value;
+  var filtrados=deudores.filter(function(d){
+    var ok=(d.unidad+d.nombre+d.concepto).toLowerCase().includes(txt);
+    return ok&&(!est||d.estado===est);
+  });
+  renderTabla(filtrados);
+}
+
+function marcarPagado(id){
+  var d=deudores.find(function(x){return x.id===id;});
+  if(d){d.estado='pagado';guardar();actualizarStats();renderTabla(deudores);}
+}
+
+function eliminar(id){
+  if(!confirm('Eliminar este deudor del registro?')) return;
+  deudores=deudores.filter(function(x){return x.id!==id;});
+  guardar();actualizarStats();renderTabla(deudores);
+}
+
+function calcMora(){
+  var valor=parseFloat(document.getElementById('m-valor').value)||0;
+  var fVenc=document.getElementById('m-fecha-venc').value;
+  var fCalc=document.getElementById('m-fecha-calc').value;
+  var tasa=parseFloat(document.getElementById('m-tasa').value)||1.5;
+  var dias=0;
+  if(fVenc&&fCalc){
+    var diff=new Date(fCalc)-new Date(fVenc);
+    dias=Math.max(0,Math.floor(diff/(1000*60*60*24)));
   }
-  var html = '';
-  deudores.forEach(function(d, i) {
-    var est = estadoLabel[d.estado] || ['—', 'gris'];
-    html += '<tr>';
-    html += '<td><b>' + d.unidad + '</b></td>';
-    html += '<td>' + d.nombre + '</td>';
-    html += '<td>' + d.concepto + '</td>';
-    html += '<td style="color:#c0392b;font-weight:500;">' + fmt(d.valor) + '</td>';
-    html += '<td>' + (d.fecha || '—') + '</td>';
-    html += '<td><span class="badge ' + est[1] + '">' + est[0] + '</span></td>';
-    html += '<td>' + (estrategiaLabel[d.estrategia] || d.estrategia) + '</td>';
-    html += '<td>';
-    if (d.estado !== 'pagado') html += '<button class="btn-accion pagar" onclick="marcarPagado(' + i + ')">Pagado</button>';
-    html += '<button class="btn-accion" onclick="eliminar(' + i + ')">Quitar</button>';
-    html += '</td>';
-    html += '</tr>';
+  var interes=valor*(tasa/100)*(dias/30);
+  document.getElementById('m-dias').textContent=dias+' dias';
+  document.getElementById('m-int').textContent=fmt(interes);
+  document.getElementById('m-tot').textContent=fmt(valor+interes);
+}
+
+function calcLiquidacion(){
+  var cuota=parseFloat(document.getElementById('liq-cuota').value)||0;
+  var meses=parseFloat(document.getElementById('liq-meses').value)||0;
+  var tasa=parseFloat(document.getElementById('liq-tasa').value)||1.5;
+  var capital=cuota*meses;
+  var interes=0;
+  for(var i=1;i<=meses;i++) interes+=cuota*(tasa/100)*i;
+  document.getElementById('liq-capital').textContent=fmt(capital);
+  document.getElementById('liq-int').textContent=fmt(interes);
+  document.getElementById('liq-tot').textContent=fmt(capital+interes);
+}
+
+function generarCarta(){
+  var nombre=document.getElementById('carta-nombre').value.trim();
+  var unidad=document.getElementById('carta-unidad').value.trim();
+  var valor=parseFloat(document.getElementById('carta-valor').value)||0;
+  var cuotas=document.getElementById('carta-cuotas').value||'—';
+  var coprop=document.getElementById('carta-coprop').value.trim()||'La Copropiedad';
+  var tipo=document.getElementById('carta-tipo').value;
+  var plazo=document.getElementById('carta-plazo').value||'5';
+  if(!nombre||valor<=0){alert('Ingresa el nombre del deudor y el valor de la deuda.');return;}
+  var fecha=new Date().toLocaleDateString('es-CO',{year:'numeric',month:'long',day:'numeric'});
+  var textos={
+    primer:'Estimado(a) residente,\n\nEsperamos que se encuentre bien. Por medio de la presente, le recordamos de manera cordial que de acuerdo con nuestros registros, usted presenta una deuda pendiente con '+coprop+' correspondiente a cuota(s) de administracion por la suma de '+fmt(valor)+'.\n\nLe invitamos a regularizar su situacion en un plazo no mayor a '+plazo+' dias habiles a partir de la fecha de recibo de esta comunicacion.\n\nEstamos disponibles para cualquier consulta o acuerdo de pago.',
+    segundo:'Estimado(a) '+nombre+', propietario(a) de la unidad '+unidad+':\n\nPor medio de la presente comunicacion formal, y de conformidad con lo establecido en el Art. 18 de la Ley 675 de 2001 (Regimen de Propiedad Horizontal), le notificamos que usted presenta una obligacion pendiente con '+coprop+ ' por la suma total de '+fmt(valor)+', correspondiente a '+cuotas+' cuota(s) de administracion vencidas.\n\nDicho valor incluye el capital en mora mas los intereses generados. Le otorgamos un plazo improrrogable de '+plazo+' dias calendario para realizar el pago total. De no regularizar su situacion en el termino indicado, nos veremos en la obligacion de iniciar el proceso de cobro prejuridico y/o juridico contemplado en la Ley 675/2001.',
+    prejuridico:'Estimado(a) '+nombre+', propietario(a) unidad '+unidad+':\n\nMediante la presente, y como ultimo aviso antes de iniciar el proceso judicial correspondiente, le informamos que su deuda con '+coprop+' asciende a '+fmt(valor)+' ('+cuotas+' cuotas vencidas), incluidos capital e intereses de mora segun lo establecido en el Art. 18 de la Ley 675 de 2001.\n\nSi dentro de los proximos '+plazo+' dias habiles no realiza el pago total o no solicita un acuerdo de pago, esta copropiedad iniciara proceso ejecutivo ante el Juzgado Civil Municipal competente. El titulo ejecutivo consiste en el acta de asamblea que aprueba el presupuesto y el extracto de su cuenta, conforme a la jurisprudencia vigente.\n\nLo instamos a evitar los costos adicionales que implica el proceso juridico.'
+  };
+  var carta=coprop.toUpperCase()+'\n';
+  carta+='Cali, '+fecha+'\n\n';
+  carta+='Senor(a): '+nombre+'\nUnidad privada: '+unidad+'\n\n';
+  carta+='Asunto: Cobro de cuotas de administracion en mora\n\n';
+  carta+=textos[tipo]+'\n\n';
+  carta+='Atentamente,\n\n';
+  carta+='_____________________________\n';
+  carta+='Administrador(a) Delegado(a)\n'+coprop+'\n';
+  carta+='\nBase legal: Ley 675 de 2001 Art. 18 · Codigo Civil · Estatuto Tributario';
+  document.getElementById('carta-preview').textContent=carta;
+  document.getElementById('carta-actions').style.display='flex';
+}
+
+function copiarCarta(){
+  var txt=document.getElementById('carta-preview').textContent;
+  navigator.clipboard.writeText(txt).then(function(){
+    alert('Carta copiada al portapapeles.');
   });
-  tbody.innerHTML = html;
 }
 
-function agregarDeudor() {
-  var unidad = document.getElementById('f-unidad').value.trim();
-  var nombre = document.getElementById('f-nombre').value.trim();
-  var valor = parseFloat(document.getElementById('f-valor').value) || 0;
-  var fecha = document.getElementById('f-fecha').value;
-  var estado = document.getElementById('f-estado').value;
-  var concepto = document.getElementById('f-concepto').value;
-  var estrategia = document.getElementById('f-estrategia').value;
-  var tel = document.getElementById('f-tel').value.trim();
-
-  if (!unidad || !nombre || valor <= 0) { alert('Completa al menos: Unidad, Nombre y Valor de la deuda.'); return; }
-
-  deudores.push({ unidad, nombre, valor, fecha, estado, concepto, estrategia, tel });
-  renderTabla();
-  actualizarStats();
-
-  document.getElementById('f-unidad').value = '';
-  document.getElementById('f-nombre').value = '';
-  document.getElementById('f-valor').value = '';
-  document.getElementById('f-fecha').value = '';
-  document.getElementById('f-tel').value = '';
+function imprimirCarta(){
+  var txt=document.getElementById('carta-preview').textContent;
+  var ventana=window.open('','_blank');
+  ventana.document.write('<html><head><title>Carta de Cobro — GestorPH</title><style>body{font-family:Arial,sans-serif;font-size:12px;margin:40px;line-height:1.8;color:#000;}@page{margin:2cm;}</style></head><body>');
+  ventana.document.write('<pre style="white-space:pre-wrap;font-family:Arial,sans-serif;">'+txt+'</pre>');
+  ventana.document.write('<script>window.onload=function(){window.print();setTimeout(function(){window.close();},1500);}<\/script>');
+  ventana.document.write('</body></html>');
+  ventana.document.close();
 }
 
-function marcarPagado(i) {
-  deudores[i].estado = 'pagado';
-  renderTabla();
-  actualizarStats();
+function descargarCartaPDF(){
+  imprimirCarta();
 }
 
-function eliminar(i) {
-  deudores.splice(i, 1);
-  renderTabla();
-  actualizarStats();
+function imprimirMora(){
+  var ventana=window.open('','_blank');
+  ventana.document.write('<html><head><title>Liquidacion de Mora</title><style>body{font-family:Arial,sans-serif;font-size:12px;margin:30px;}table{width:100%;border-collapse:collapse;}td{padding:8px;border-bottom:1px solid #eee;}@page{margin:2cm;}</style></head><body>');
+  ventana.document.write('<h2 style="color:#C9A84C;">Liquidacion de Intereses de Mora</h2>');
+  ventana.document.write('<p>Generado: '+new Date().toLocaleDateString('es-CO')+'</p><table>');
+  ventana.document.write('<tr><td>Capital en mora:</td><td>'+document.getElementById('liq-capital').textContent+'</td></tr>');
+  ventana.document.write('<tr><td>Intereses acumulados:</td><td>'+document.getElementById('liq-int').textContent+'</td></tr>');
+  ventana.document.write('<tr><td><b>Total a cobrar:</b></td><td><b>'+document.getElementById('liq-tot').textContent+'</b></td></tr>');
+  ventana.document.write('</table><p style="font-size:10px;color:#999;margin-top:20px;">Base normativa: Ley 675/2001 Art. 18 · GestorPH · UNICUCES</p>');
+  ventana.document.write('<script>window.onload=function(){window.print();setTimeout(function(){window.close();},1500);}<\/script></body></html>');
+  ventana.document.close();
 }
 
-function calcMora() {
-  var valor = parseFloat(document.getElementById('m-valor').value) || 0;
-  var dias = parseFloat(document.getElementById('m-dias').value) || 0;
-  var tasa = parseFloat(document.getElementById('m-tasa').value) || 0;
-  var interes = valor * (tasa / 100) * (dias / 30);
-  document.getElementById('m-int').textContent = fmt(interes);
-  document.getElementById('m-tot').textContent = fmt(valor + interes);
+function descargarMoraPDF(){imprimirMora();}
+
+function exportarResumen(){
+  var txt='RESUMEN DE CARTERA — GestorPH\n============================\n\n';
+  deudores.forEach(function(d,i){
+    txt+=(i+1)+'. '+d.unidad+' — '+d.nombre+'\n';
+    txt+='   Concepto: '+d.concepto+' | Valor: '+fmt(d.valor)+'\n';
+    txt+='   Estado: '+d.estado+' | Estrategia: '+(estrategiaLabel[d.estrategia]||d.estrategia)+'\n\n';
+  });
+  var blob=new Blob([txt],{type:'text/plain'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Cartera_GestorPH.txt';a.click();
 }
 
-function exportarResumen() {
-  sendPrompt('Generar un resumen del estado de cartera con los deudores registrados en GestorPH');
+function imprimirListado(){
+  var ventana=window.open('','_blank');
+  ventana.document.write('<html><head><title>Listado Cartera</title><style>body{font-family:Arial,sans-serif;font-size:11px;margin:20px;}table{width:100%;border-collapse:collapse;}th{background:#C9A84C;color:#fff;padding:6px;}td{padding:5px;border-bottom:1px solid #eee;}@page{margin:1.5cm;}</style></head><body>');
+  ventana.document.write('<h2 style="color:#C9A84C;">Listado de Cartera — GestorPH</h2>');
+  ventana.document.write('<p>Fecha: '+new Date().toLocaleDateString('es-CO')+'</p>');
+  ventana.document.write('<table><tr><th>Unidad</th><th>Residente</th><th>Concepto</th><th>Valor</th><th>Estado</th><th>Estrategia</th></tr>');
+  deudores.forEach(function(d){
+    ventana.document.write('<tr><td>'+d.unidad+'</td><td>'+d.nombre+'</td><td>'+d.concepto+'</td><td>'+fmt(d.valor)+'</td><td>'+d.estado+'</td><td>'+(estrategiaLabel[d.estrategia]||'—')+'</td></tr>');
+  });
+  ventana.document.write('</table><script>window.onload=function(){window.print();setTimeout(function(){window.close();},1500);}<\/script></body></html>');
+  ventana.document.close();
 }
+
+document.getElementById('m-fecha-calc').value=new Date().toISOString().split('T')[0];
+actualizarStats();
 </script>
+</body>
+</html>
